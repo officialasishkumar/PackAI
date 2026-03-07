@@ -13,7 +13,7 @@ export default function Home() {
         </div>
 
         <div className={styles.headline}>
-          <p className="monoLabel">PackSnap</p>
+          <p className="monoLabel">PackAI</p>
           <h1>Turn a suitcase snapshot into a return-trip ritual.</h1>
           <p>
             Capture a packed bag once, let Gemini pull out visible items, then

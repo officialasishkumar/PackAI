@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"packsnap/backend/internal/ai"
-	"packsnap/backend/internal/config"
-	"packsnap/backend/internal/httpapi"
-	"packsnap/backend/internal/storage"
-	"packsnap/backend/internal/trips"
+	"github.com/officialasishkumar/PackAI/backend/internal/ai"
+	"github.com/officialasishkumar/PackAI/backend/internal/config"
+	"github.com/officialasishkumar/PackAI/backend/internal/httpapi"
+	"github.com/officialasishkumar/PackAI/backend/internal/storage"
+	"github.com/officialasishkumar/PackAI/backend/internal/trips"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"

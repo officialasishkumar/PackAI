@@ -11,12 +11,12 @@ FROM base AS builder
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /packsnap-api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /packai-api ./cmd/api
 
 FROM alpine:3.22 AS runner
 WORKDIR /app
 RUN apk add --no-cache ca-certificates
-COPY --from=builder /packsnap-api /usr/local/bin/packsnap-api
+COPY --from=builder /packai-api /usr/local/bin/packai-api
 EXPOSE 8080
-CMD ["packsnap-api"]
+CMD ["packai-api"]
 

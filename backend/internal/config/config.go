@@ -37,14 +37,14 @@ func Load() (Config, error) {
 		APIPort:            valueOrDefault("API_PORT", "8080"),
 		AllowedOrigins:     splitCSV(valueOrDefault("ALLOWED_ORIGINS", "http://localhost:3000")),
 		MongoURI:           valueOrDefault("MONGODB_URI", "mongodb://localhost:27017"),
-		MongoDatabase:      valueOrDefault("MONGODB_DATABASE", "packsnap"),
+		MongoDatabase:      valueOrDefault("MONGODB_DATABASE", "packai"),
 		MediaStorageDriver: valueOrDefault("MEDIA_STORAGE_DRIVER", "local"),
 		LocalMediaDir:      valueOrDefault("LOCAL_MEDIA_DIR", "./tmp/media"),
 		GoogleAPIKey:       strings.TrimSpace(os.Getenv("GOOGLE_API_KEY")),
 		GeminiModel:        valueOrDefault("GEMINI_MODEL", "gemini-2.5-flash"),
 		AWSRegion:          strings.TrimSpace(os.Getenv("AWS_REGION")),
 		S3Bucket:           strings.TrimSpace(os.Getenv("S3_BUCKET")),
-		S3Prefix:           valueOrDefault("S3_PREFIX", "packsnap/uploads"),
+		S3Prefix:           valueOrDefault("S3_PREFIX", "packai/uploads"),
 		S3PresignTTL:       presignTTL,
 	}
 

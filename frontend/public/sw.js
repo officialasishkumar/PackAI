@@ -1,4 +1,4 @@
-const CACHE_NAME = "packsnap-v1";
+const CACHE_NAME = "packai-v1";
 const SHELL_ASSETS = ["/", "/offline", "/icon.svg", "/maskable-icon.svg"];
 
 self.addEventListener("install", (event) => {

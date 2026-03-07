@@ -17,9 +17,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PackSnap",
+  title: "PackAI",
   description: "Mobile-first trip packing and repacking with AI-assisted item extraction.",
-  applicationName: "PackSnap",
+  applicationName: "PackAI",
 };
 
 export const viewport = {

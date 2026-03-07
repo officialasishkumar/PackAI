@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"packsnap/backend/internal/config"
+	"github.com/officialasishkumar/PackAI/backend/internal/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"

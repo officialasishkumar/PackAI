@@ -1,6 +1,6 @@
-# PackSnap
+# PackAI
 
-PackSnap is a mobile-first luggage checklist app. Users upload a suitcase photo or short MP4, the Go backend sends that media to Gemini for structured item extraction, and the Next.js frontend turns the result into a packing/repacking checklist that stays readable offline after first load.
+PackAI is a mobile-first luggage checklist app. Users upload a suitcase photo or short MP4, the Go backend sends that media to Gemini for structured item extraction, and the Next.js frontend turns the result into a packing/repacking checklist that stays readable offline after first load.
 
 ## Stack
 

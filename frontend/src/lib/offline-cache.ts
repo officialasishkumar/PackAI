@@ -1,6 +1,6 @@
 import { Trip } from "@/lib/types";
 
-const CACHE_PREFIX = "packsnap.trip.";
+const CACHE_PREFIX = "packai.trip.";
 
 export function cacheTrip(trip: Trip): void {
   if (typeof window === "undefined") {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"packsnap/backend/internal/config"
+	"github.com/officialasishkumar/PackAI/backend/internal/config"
 )
 
 type ArchiveInput struct {

@@ -1,9 +1,9 @@
 
-# Product Requirements & Technical Specification: "PackSnap"
+# Product Requirements & Technical Specification: "PackAI"
 
 ## 1. Product Overview
 
-PackSnap is a mobile-first web application designed to eliminate packing and repacking anxiety. Users upload a photo or short video of their packed luggage, and the system utilizes a multimodal AI (Gemini 1.5 Flash) to automatically detect, categorize, and log all visible items. This generates an interactive checklist used to ensure no items are left behind during the return trip.
+PackAI is a mobile-first web application designed to eliminate packing and repacking anxiety. Users upload a photo or short video of their packed luggage, and the system utilizes a multimodal AI (Gemini 1.5 Flash) to automatically detect, categorize, and log all visible items. This generates an interactive checklist used to ensure no items are left behind during the return trip.
 
 ## 2. Core Features (v1 Final)
 

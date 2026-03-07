@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"packsnap/backend/internal/config"
-	"packsnap/backend/internal/media"
-	"packsnap/backend/internal/trips"
+	"github.com/officialasishkumar/PackAI/backend/internal/config"
+	"github.com/officialasishkumar/PackAI/backend/internal/media"
+	"github.com/officialasishkumar/PackAI/backend/internal/trips"
 
 	"google.golang.org/genai"
 )

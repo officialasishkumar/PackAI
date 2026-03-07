@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"packsnap/backend/internal/app"
-	"packsnap/backend/internal/config"
+	"github.com/officialasishkumar/PackAI/backend/internal/app"
+	"github.com/officialasishkumar/PackAI/backend/internal/config"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 	defer stop()
 
 	go func() {
-		log.Printf("packsnap api listening on %s", cfg.ListenAddr())
+		log.Printf("packai api listening on %s", cfg.ListenAddr())
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %v", err)
 		}

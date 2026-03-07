@@ -58,7 +58,7 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
 
     if (cachedTrip) {
       hydrateWorkspace(cachedTrip, setTrip, setItems, setMode);
-      setSyncNotice("Showing your locally cached checklist while PackSnap refreshes.");
+      setSyncNotice("Showing your locally cached checklist while PackAI refreshes.");
     }
 
     async function load() {

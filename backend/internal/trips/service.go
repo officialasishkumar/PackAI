@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"packsnap/backend/internal/media"
-	"packsnap/backend/internal/storage"
+	"github.com/officialasishkumar/PackAI/backend/internal/media"
+	"github.com/officialasishkumar/PackAI/backend/internal/storage"
 )
 
 type Extractor interface {

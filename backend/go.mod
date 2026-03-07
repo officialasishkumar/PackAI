@@ -1,4 +1,4 @@
-module packsnap/backend
+module github.com/officialasishkumar/PackAI/backend
 
 go 1.25.0
 

@@ -116,7 +116,7 @@ export function TripCreateForm() {
         <p className={styles.kicker}>Create a trip</p>
         <h2>Upload once, repack with confidence later.</h2>
         <p className={styles.copy}>
-          PackSnap reads a luggage photo or short MP4, turns visible items into
+          PackAI reads a luggage photo or short MP4, turns visible items into
           a categorized checklist, and keeps the trip cached for offline viewing.
         </p>
       </div>

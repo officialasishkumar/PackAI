@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "PackSnap",
-    short_name: "PackSnap",
+    name: "PackAI",
+    short_name: "PackAI",
     description:
       "Create packing and repacking checklists from luggage photos and short videos.",
     start_url: "/",

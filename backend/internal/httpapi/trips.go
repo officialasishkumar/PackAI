@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"packsnap/backend/internal/ai"
-	"packsnap/backend/internal/media"
-	"packsnap/backend/internal/trips"
+	"github.com/officialasishkumar/PackAI/backend/internal/ai"
+	"github.com/officialasishkumar/PackAI/backend/internal/media"
+	"github.com/officialasishkumar/PackAI/backend/internal/trips"
 )
 
 const maxMultipartBodyBytes = media.MaxUploadBytes + (1 << 20)
@@ -145,7 +145,7 @@ func decodeUpdateItemsRequest(body []byte) (trips.UpdateItemsInput, error) {
 
 func persistTempUpload(file multipart.File, originalName string) (string, error) {
 	extension := filepath.Ext(originalName)
-	tempFile, err := os.CreateTemp("", "packsnap-*"+extension)
+	tempFile, err := os.CreateTemp("", "packai-*"+extension)
 	if err != nil {
 		return "", err
 	}
