@@ -1,36 +1,21 @@
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/lib/auth-options";
-import { fetchBackend, relayResponse } from "@/lib/server-api";
-
-function unauthorizedResponse(): Response {
-  return Response.json({ error: "authentication is required" }, { status: 401 });
-}
+import { fetchBackend, relayResponse, resolveActor } from "@/lib/server-api";
 
 export async function GET(request: Request): Promise<Response> {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId) {
-    return unauthorizedResponse();
-  }
+  const actor = await resolveActor();
 
   const url = new URL(request.url);
   const limit = url.searchParams.get("limit");
   const backendResponse = await fetchBackend(
     `/api/v1/trips${limit ? `?limit=${encodeURIComponent(limit)}` : ""}`,
     { method: "GET" },
-    userId,
+    actor.userId,
   );
 
-  return relayResponse(backendResponse);
+  return relayResponse(backendResponse, actor);
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId) {
-    return unauthorizedResponse();
-  }
+  const actor = await resolveActor();
 
   const incoming = await request.formData();
   const formData = new FormData();
@@ -47,8 +32,8 @@ export async function POST(request: Request): Promise<Response> {
       method: "POST",
       body: formData,
     },
-    userId,
+    actor.userId,
   );
 
-  return relayResponse(backendResponse);
+  return relayResponse(backendResponse, actor);
 }

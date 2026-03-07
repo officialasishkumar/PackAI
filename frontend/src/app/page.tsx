@@ -13,16 +13,16 @@ const PROMISES = [
   },
   {
     label: "Travel UX",
-    value: "Offline caching, repacking mode, and a day-by-day dashboard keep the useful part available in bad airport Wi-Fi.",
+    value: "Offline caching, checklist-image export, and a day-by-day dashboard keep the useful part available in bad airport Wi-Fi.",
   },
 ];
 
 const SIGNALS = [
-  "Google sign-in for owned trip history",
+  "Guest mode or Google sign-in",
   "AI extraction locked to JSON",
   "Short-form image/video capture",
   "Optional location sharing for dashboard context",
-  "Return-trip checklist with completion tracking",
+  "Checklist image download from trip or dashboard",
 ];
 
 export default function Home() {

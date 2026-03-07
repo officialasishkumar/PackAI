@@ -1,0 +1,10 @@
+.wrap {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.error {
+  color: #8a2f17;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}

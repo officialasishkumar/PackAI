@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
-import { AuthRequiredCard } from "@/components/auth-required-card";
+import { DownloadChecklistButton } from "@/components/download-checklist-button";
+import { SignInNudge } from "@/components/sign-in-nudge";
 import { getErrorMessage, listTripSummaries } from "@/lib/api";
 import { TripSummary, formatTripLocation } from "@/lib/types";
 
@@ -28,9 +29,7 @@ export function TripDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status !== "authenticated") {
-      setTrips([]);
-      setIsLoading(false);
+    if (status === "loading") {
       return;
     }
 
@@ -62,40 +61,23 @@ export function TripDashboard() {
     };
   }, [status]);
 
-  if (status === "loading") {
-    return (
-      <main className={styles.page}>
-        <section className={styles.loadingCard}>
-          <p className={styles.kicker}>Dashboard</p>
-          <h1>Loading your travel history…</h1>
-        </section>
-      </main>
-    );
-  }
-
-  if (status !== "authenticated") {
-    return (
-      <main className={styles.page}>
-        <AuthRequiredCard
-          title="Sign in to see your trip history."
-          copy="The dashboard groups generated lists by day and approximate location. Nothing here needs to show the source image."
-        />
-      </main>
-    );
-  }
-
   const groupedTrips = groupTripsByDay(trips);
 
   return (
     <main className={styles.page}>
+      <SignInNudge
+        title="Guest dashboard works now. Sign in if you want it everywhere."
+        copy="You can keep using PackAI without an account, download checklist images, and revisit lists on this device. Google sign-in only adds cross-device continuity."
+      />
+
       <section className={styles.hero}>
         <div>
           <p className={styles.kicker}>Dashboard</p>
-          <h1>Your generated lists, sorted by day and place.</h1>
+          <h1>A checklist archive, organized by day and place.</h1>
           <p className={styles.copy}>
-            This view keeps the useful context: when the list was created and
-            where you chose to share location. The source media stays out of the
-            dashboard.
+            This view stays image-free. It keeps the useful context: when the
+            list was generated, where you chose to share location, and a quick
+            checklist preview you can reopen or save as an image.
           </p>
         </div>
 
@@ -116,13 +98,13 @@ export function TripDashboard() {
       {isLoading ? (
         <section className={styles.loadingCard}>
           <p className={styles.kicker}>Refreshing</p>
-          <h2>Pulling your latest trips…</h2>
+          <h2>Pulling your latest checklists…</h2>
         </section>
       ) : groupedTrips.length === 0 ? (
         <section className={styles.emptyCard}>
           <p className={styles.kicker}>No trips yet</p>
           <h2>Create your first checklist.</h2>
-          <p>Once you generate a trip, it will appear here with its date and optional location.</p>
+          <p>Once you generate a trip, it will appear here with its day, optional location, and checklist preview.</p>
           <Link href="/">Start a trip</Link>
         </section>
       ) : (
@@ -136,24 +118,51 @@ export function TripDashboard() {
 
               <div className={styles.tripList}>
                 {group.trips.map((trip) => (
-                  <Link key={trip._id} href={`/trips/${trip._id}`} className={styles.tripCard}>
+                  <article key={trip._id} className={styles.tripCard}>
                     <div className={styles.tripMeta}>
-                      <p className={styles.tripTime}>
-                        {TIME_FORMATTER.format(new Date(trip.created_at))}
-                      </p>
+                      <div>
+                        <p className={styles.tripTime}>
+                          {TIME_FORMATTER.format(new Date(trip.created_at))}
+                        </p>
+                        <strong>{trip.trip_name}</strong>
+                      </div>
                       <span className={styles.tripStatus}>
                         {trip.status.replace("_", " ")}
                       </span>
                     </div>
 
-                    <strong>{trip.trip_name}</strong>
                     <p className={styles.tripLocation}>
                       {formatTripLocation(trip.location)}
                     </p>
+
+                    <div className={styles.previewList}>
+                      {(trip.preview_items ?? []).map((item) => (
+                        <div key={item.item_id} className={styles.previewRow}>
+                          <span className={styles.previewCheck} />
+                          <span className={styles.previewLabel}>
+                            {item.name}
+                            <small>Qty {item.quantity}</small>
+                          </span>
+                        </div>
+                      ))}
+                      {trip.item_count > (trip.preview_items?.length ?? 0) ? (
+                        <p className={styles.moreItems}>
+                          +{trip.item_count - (trip.preview_items?.length ?? 0)} more items
+                        </p>
+                      ) : null}
+                    </div>
+
                     <p className={styles.tripCounts}>
                       {trip.item_count} items · {trip.total_units} total units
                     </p>
-                  </Link>
+
+                    <div className={styles.tripActions}>
+                      <Link href={`/trips/${trip._id}`} className={styles.openLink}>
+                        Open checklist
+                      </Link>
+                      <DownloadChecklistButton tripId={trip._id} label="Save image" />
+                    </div>
+                  </article>
                 ))}
               </div>
             </article>

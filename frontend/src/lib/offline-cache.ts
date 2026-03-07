@@ -18,24 +18,30 @@ export function cacheTrip(trip: Trip): void {
   persistIndex(trip);
 }
 
-export function getCachedTrip(id: string, userId: string): Trip | null {
+export function getCachedTrip(id: string): Trip | null {
   if (typeof window === "undefined") {
     return null;
   }
-  if (!userId) {
-    return null;
+
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const storageKey = window.localStorage.key(index);
+    if (!storageKey || !storageKey.startsWith(CACHE_PREFIX) || !storageKey.endsWith(`.${id}`)) {
+      continue;
+    }
+
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      continue;
+    }
+
+    try {
+      return JSON.parse(raw) as Trip;
+    } catch {
+      return null;
+    }
   }
 
-  const raw = window.localStorage.getItem(cacheKey(userId, id));
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(raw) as Trip;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 function cacheKey(userId: string, id: string): string {

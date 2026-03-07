@@ -53,8 +53,8 @@ export function SiteChrome({
             </div>
           ) : (
             <div className={styles.userMeta}>
-              <strong>Google sign-in</strong>
-              <span>required for trip history and dashboard</span>
+              <strong>Guest mode on this device</strong>
+              <span>sign in only if you want cross-device history</span>
             </div>
           )}
 

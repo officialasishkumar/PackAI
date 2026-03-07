@@ -9,9 +9,9 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
-import { AuthRequiredCard } from "@/components/auth-required-card";
+import { DownloadChecklistButton } from "@/components/download-checklist-button";
+import { SignInNudge } from "@/components/sign-in-nudge";
 import { getErrorMessage, getTrip, updateTripItems } from "@/lib/api";
 import { cacheTrip, getCachedTrip } from "@/lib/offline-cache";
 import {
@@ -35,7 +35,6 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 export function TripWorkspace({ tripId }: { tripId: string }) {
-  const { data: session, status: sessionStatus } = useSession();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<TripItem[]>([]);
   const [mode, setMode] = useState<WorkspaceMode>("packing");
@@ -57,13 +56,8 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
   );
 
   useEffect(() => {
-    if (sessionStatus !== "authenticated") {
-      setIsLoading(false);
-      return;
-    }
-
     let cancelled = false;
-    const cachedTrip = getCachedTrip(tripId, session?.user?.id ?? "");
+    const cachedTrip = getCachedTrip(tripId);
 
     if (cachedTrip) {
       hydrateWorkspace(cachedTrip, setTrip, setItems, setMode);
@@ -104,7 +98,7 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [session?.user?.id, sessionStatus, tripId]);
+  }, [tripId]);
 
   async function handleSave(): Promise<void> {
     if (!trip) {
@@ -209,28 +203,6 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
     );
   }
 
-  if (sessionStatus === "loading") {
-    return (
-      <main className={styles.page}>
-        <section className={styles.loading}>
-          <p className={styles.kicker}>Loading session</p>
-          <h1>Checking your signed-in access…</h1>
-        </section>
-      </main>
-    );
-  }
-
-  if (sessionStatus !== "authenticated") {
-    return (
-      <main className={styles.page}>
-        <AuthRequiredCard
-          title="Sign in to open this trip."
-          copy="Trip access is now tied to your Google account, so the checklist and dashboard stay under the same owner."
-        />
-      </main>
-    );
-  }
-
   if (!trip) {
     return (
       <main className={styles.page}>
@@ -256,6 +228,11 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
 
   return (
     <main className={styles.page}>
+      <SignInNudge
+        title="Keep this checklist across devices if you want."
+        copy="Guests can still edit, export, and revisit this trip from the same device dashboard. Google sign-in simply turns it into portable history."
+      />
+
       <header className={styles.header}>
         <div className={styles.headerCopy}>
           <Link href="/" className={styles.backLink}>
@@ -286,14 +263,24 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
             </div>
           </div>
 
-          <button
-            className={styles.saveButton}
-            type="button"
-            disabled={isSaving || !isDirty}
-            onClick={handleSave}
-          >
-            {isSaving ? "Saving..." : isDirty ? "Save changes" : "Saved"}
-          </button>
+          <div className={styles.actionStack}>
+            <DownloadChecklistButton
+              trip={{
+                ...trip,
+                items,
+                status: currentStatus,
+              }}
+              label="Save image"
+            />
+            <button
+              className={styles.saveButton}
+              type="button"
+              disabled={isSaving || !isDirty}
+              onClick={handleSave}
+            >
+              {isSaving ? "Saving..." : isDirty ? "Save changes" : "Saved"}
+            </button>
+          </div>
         </div>
       </header>
 

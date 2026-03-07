@@ -30,6 +30,11 @@
   gap: 0.9rem;
 }
 
+.actionStack {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .completionCard,
 .heroPanel,
 .panel,
@@ -124,6 +129,7 @@
 
 .saveButton {
   min-height: 3.2rem;
+  width: 100%;
 }
 
 .layout {

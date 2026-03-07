@@ -8,9 +8,9 @@ import {
   useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
-import { AuthRequiredCard } from "@/components/auth-required-card";
+import { SignInNudge } from "@/components/sign-in-nudge";
 import { createTrip, getErrorMessage } from "@/lib/api";
 import { cacheTrip } from "@/lib/offline-cache";
 import { prepareMedia } from "@/lib/media";
@@ -32,8 +32,8 @@ interface SharedLocation {
 
 const TRUST_POINTS = [
   {
-    title: "Google-backed history",
-    copy: "Signed-in trips can be revisited from the dashboard without exposing the source image there.",
+    title: "Device-first history",
+    copy: "Trips can be revisited from the dashboard without exposing the source image there, even before sign-in.",
   },
   {
     title: "Location is optional",
@@ -183,163 +183,165 @@ export function TripCreateForm() {
   const isBusy = isPreparing || isSubmitting || isRedirecting || isLocating;
   const isVideo = selectedMedia?.file.type === "video/mp4";
 
-  if (status === "loading") {
-    return (
-      <section className={styles.card}>
-        <p className={styles.kicker}>Session</p>
-        <h2>Preparing your signed-in workspace…</h2>
-      </section>
-    );
-  }
-
-  if (status !== "authenticated") {
-    return (
-      <AuthRequiredCard
-        title="Sign in to create trips that appear on your dashboard."
-        copy="Google auth keeps trip ownership clean, and it lets PackAI show when and where a checklist was generated without exposing the uploaded image."
-      />
-    );
-  }
-
   return (
-    <form className={styles.card} onSubmit={handleSubmit}>
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <p className={styles.kicker}>Create a trip</p>
-          <span className={styles.privacyPill}>Dashboard-ready capture flow</span>
-        </div>
-        <h2>Generate the list, then keep the context.</h2>
-        <p className={styles.copy}>
-          Every signed-in trip can land on your dashboard with its creation day
-          and optional location. The dashboard still leaves the source media out.
-        </p>
-      </div>
-
-      <label className={styles.field}>
-        <span>Trip name</span>
-        <input
-          name="trip_name"
-          placeholder="GSoC Summit 2026"
-          value={tripName}
-          onChange={(event) => setTripName(event.target.value)}
-          maxLength={80}
-          required
+    <div className={styles.stack}>
+      {status !== "authenticated" ? (
+        <SignInNudge
+          title="Create instantly, or sign in if you want sync."
+          copy="Guests can still generate lists, download checklist images, and see them on this device dashboard. Google sign-in simply keeps that history across devices."
         />
-      </label>
+      ) : null}
 
-      <label className={styles.uploader}>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,video/mp4"
-          capture="environment"
-          onChange={handleMediaChange}
-          disabled={isBusy}
-        />
-        <span className={styles.uploaderLabel}>Choose luggage photo or video</span>
-        <span className={styles.uploaderHint}>
-          JPEG, PNG, or MP4 up to 15 seconds. Images are compressed client-side.
-        </span>
-      </label>
-
-      <section className={styles.locationCard}>
-        <div className={styles.locationHeader}>
-          <div>
-            <p className={styles.kicker}>Location sharing</p>
-            <strong>Add approximate location to the dashboard</strong>
+      <form className={styles.card} onSubmit={handleSubmit}>
+        <div className={styles.header}>
+          <div className={styles.headerTop}>
+            <p className={styles.kicker}>Create a trip</p>
+            <span className={styles.privacyPill}>
+              {status === "authenticated" ? "Cloud-backed dashboard" : "Guest-friendly capture flow"}
+            </span>
           </div>
-
-          <label className={styles.toggle}>
-            <input
-              type="checkbox"
-              checked={wantsLocation}
-              onChange={(event) => handleLocationToggle(event.target.checked)}
-            />
-            <span>{wantsLocation ? "On" : "Off"}</span>
-          </label>
-        </div>
-
-        <p className={styles.locationCopy}>
-          Optional. If you enable this, the browser will ask whether you want to
-          share your current location for trip history only.
-        </p>
-
-        {wantsLocation ? (
-          <div className={styles.locationActions}>
+          <h2>Generate the list, then keep the context.</h2>
+          <p className={styles.copy}>
+            Every trip can land on your dashboard with its creation day and optional
+            location. The dashboard still leaves the source media out.
+          </p>
+          {status !== "authenticated" ? (
             <button
               type="button"
-              className={styles.secondaryButton}
-              onClick={captureLocation}
-              disabled={isBusy}
+              className={styles.inlineSignIn}
+              onClick={() => signIn("google")}
             >
-              {isLocating ? "Capturing location..." : "Use current location"}
+              Sign in if you want cross-device history
             </button>
-            <p className={styles.locationNote}>
-              {sharedLocation
-                ? `Approximate coordinates saved: ${sharedLocation.latitude.toFixed(2)}, ${sharedLocation.longitude.toFixed(2)}`
-                : "No location captured yet."}
-            </p>
-          </div>
-        ) : null}
-      </section>
+          ) : null}
+        </div>
 
-      <div className={styles.preview}>
-        {selectedMedia ? (
-          isVideo ? (
-            <video
-              className={styles.previewMedia}
-              src={selectedMedia.previewUrl}
-              controls
-              playsInline
-            />
+        <label className={styles.field}>
+          <span>Trip name</span>
+          <input
+            name="trip_name"
+            placeholder="GSoC Summit 2026"
+            value={tripName}
+            onChange={(event) => setTripName(event.target.value)}
+            maxLength={80}
+            required
+          />
+        </label>
+
+        <label className={styles.uploader}>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,video/mp4"
+            capture="environment"
+            onChange={handleMediaChange}
+            disabled={isBusy}
+          />
+          <span className={styles.uploaderLabel}>Choose luggage photo or video</span>
+          <span className={styles.uploaderHint}>
+            JPEG, PNG, or MP4 up to 15 seconds. Images are compressed client-side.
+          </span>
+        </label>
+
+        <section className={styles.locationCard}>
+          <div className={styles.locationHeader}>
+            <div>
+              <p className={styles.kicker}>Location sharing</p>
+              <strong>Add approximate location to the dashboard</strong>
+            </div>
+
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={wantsLocation}
+                onChange={(event) => handleLocationToggle(event.target.checked)}
+              />
+              <span>{wantsLocation ? "On" : "Off"}</span>
+            </label>
+          </div>
+
+          <p className={styles.locationCopy}>
+            Optional. If you enable this, the browser will ask whether you want to
+            share your current location for trip history only.
+          </p>
+
+          {wantsLocation ? (
+            <div className={styles.locationActions}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={captureLocation}
+                disabled={isBusy}
+              >
+                {isLocating ? "Capturing location..." : "Use current location"}
+              </button>
+              <p className={styles.locationNote}>
+                {sharedLocation
+                  ? `Approximate coordinates saved: ${sharedLocation.latitude.toFixed(2)}, ${sharedLocation.longitude.toFixed(2)}`
+                  : "No location captured yet."}
+              </p>
+            </div>
+          ) : null}
+        </section>
+
+        <div className={styles.preview}>
+          {selectedMedia ? (
+            isVideo ? (
+              <video
+                className={styles.previewMedia}
+                src={selectedMedia.previewUrl}
+                controls
+                playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className={styles.previewMedia}
+                src={selectedMedia.previewUrl}
+                alt="Selected luggage media preview"
+              />
+            )
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className={styles.previewMedia}
-              src={selectedMedia.previewUrl}
-              alt="Selected luggage media preview"
-            />
-          )
-        ) : (
-          <div className={styles.previewEmpty}>
-            <span className={styles.previewBadge}>Rear camera preferred</span>
-            <strong>Mobile capture ready</strong>
-            <p>Use the rear camera for a packed suitcase photo, or a short pan video.</p>
-          </div>
-        )}
-      </div>
+            <div className={styles.previewEmpty}>
+              <span className={styles.previewBadge}>Rear camera preferred</span>
+              <strong>Mobile capture ready</strong>
+              <p>Use the rear camera for a packed suitcase photo, or a short pan video.</p>
+            </div>
+          )}
+        </div>
 
-      <p className={styles.note}>
-        {selectedMedia?.note ??
-          "Tip: spread items so the model can clearly see distinct objects and counts."}
-      </p>
+        <p className={styles.note}>
+          {selectedMedia?.note ??
+            "Tip: spread items so the model can clearly see distinct objects and counts."}
+        </p>
 
-      <section className={styles.trustGrid} aria-label="Product guarantees">
-        {TRUST_POINTS.map((point) => (
-          <article key={point.title} className={styles.trustCard}>
-            <strong>{point.title}</strong>
-            <p>{point.copy}</p>
-          </article>
-        ))}
-      </section>
+        <section className={styles.trustGrid} aria-label="Product guarantees">
+          {TRUST_POINTS.map((point) => (
+            <article key={point.title} className={styles.trustCard}>
+              <strong>{point.title}</strong>
+              <p>{point.copy}</p>
+            </article>
+          ))}
+        </section>
 
-      {error ? <p className={styles.error}>{error}</p> : null}
+        {error ? <p className={styles.error}>{error}</p> : null}
 
-      <button className={styles.submit} type="submit" disabled={isBusy}>
-        {isPreparing
-          ? "Preparing media..."
-          : isLocating
-            ? "Capturing location..."
-            : isSubmitting
-              ? "Analyzing luggage..."
-              : isRedirecting
-                ? "Opening checklist..."
-                : "Create checklist"}
-      </button>
+        <button className={styles.submit} type="submit" disabled={isBusy}>
+          {isPreparing
+            ? "Preparing media..."
+            : isLocating
+              ? "Capturing location..."
+              : isSubmitting
+                ? "Analyzing luggage..."
+                : isRedirecting
+                  ? "Opening checklist..."
+                  : "Create checklist"}
+        </button>
 
-      <p className={styles.footnote}>
-        The dashboard stores date, trip metadata, and optional approximate
-        coordinates. It does not render the uploaded image there.
-      </p>
-    </form>
+        <p className={styles.footnote}>
+          Guests can create, revisit, and export list images on this device.
+          Signing in just makes that history portable.
+        </p>
+      </form>
+    </div>
   );
 }

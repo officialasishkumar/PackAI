@@ -56,6 +56,7 @@ export interface TripSummary {
   status: TripStatus;
   item_count: number;
   total_units: number;
+  preview_items?: TripItem[];
   location?: TripLocation;
 }
 

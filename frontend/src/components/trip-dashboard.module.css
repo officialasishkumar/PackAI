@@ -40,7 +40,6 @@
 }
 
 .hero h1,
-.loadingCard h1,
 .loadingCard h2,
 .emptyCard h2 {
   font-size: clamp(2.2rem, 8vw, 4.3rem);
@@ -109,15 +108,15 @@
 
 .tripList {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.9rem;
   padding: 1rem;
 }
 
 .tripCard {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.7rem;
   padding: 1rem;
-  border-radius: 1.4rem;
+  border-radius: 1.5rem;
   border: 1px solid rgba(16, 34, 49, 0.08);
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 249, 244, 0.86)),
@@ -126,14 +125,15 @@
 
 .tripMeta {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
   gap: 0.8rem;
 }
 
 .tripTime,
 .tripCounts,
-.tripLocation {
+.tripLocation,
+.moreItems {
   color: var(--muted);
 }
 
@@ -148,6 +148,58 @@
   letter-spacing: 0.1em;
 }
 
+.previewList {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border-radius: 1.2rem;
+  background: rgba(16, 34, 49, 0.04);
+}
+
+.previewRow {
+  display: grid;
+  grid-template-columns: 1.05rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.previewCheck {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 34, 49, 0.22);
+}
+
+.previewLabel {
+  display: grid;
+  gap: 0.08rem;
+  font-weight: 500;
+}
+
+.previewLabel small {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.tripActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: start;
+}
+
+.openLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1rem;
+  background: rgba(16, 34, 49, 0.92);
+  color: white;
+  font-weight: 600;
+}
+
 @media (min-width: 980px) {
   .page {
     padding: 1.4rem 2rem 2rem;
@@ -156,5 +208,9 @@
   .hero {
     grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 22rem);
     align-items: start;
+  }
+
+  .tripList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

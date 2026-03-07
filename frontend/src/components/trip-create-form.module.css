@@ -1,3 +1,8 @@
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
 .card {
   border: 1px solid var(--border);
   border-radius: 2rem;
@@ -55,6 +60,19 @@
 .copy {
   color: var(--muted);
   line-height: 1.7;
+}
+
+.inlineSignIn {
+  width: fit-content;
+  padding-inline: 0;
+  background: transparent;
+  color: var(--foreground);
+  box-shadow: none;
+}
+
+.inlineSignIn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
 }
 
 .field {
