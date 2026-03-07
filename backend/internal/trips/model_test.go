@@ -42,6 +42,19 @@ func TestPrepareItemsRejectsBlankNames(t *testing.T) {
 	}
 }
 
+func TestPrepareItemsRejectsTooManyItems(t *testing.T) {
+	t.Parallel()
+
+	items := make([]TripItem, 0, MaxTripItems+1)
+	for index := 0; index < MaxTripItems+1; index++ {
+		items = append(items, TripItem{Name: "Item"})
+	}
+
+	if _, err := PrepareItems(items); err == nil {
+		t.Fatal("PrepareItems() expected validation error for oversized item list")
+	}
+}
+
 func TestDeriveStatusCompletesWhenEverythingChecked(t *testing.T) {
 	t.Parallel()
 

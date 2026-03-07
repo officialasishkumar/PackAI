@@ -26,6 +26,8 @@ type UploadMetadata struct {
 }
 
 func InspectUpload(path, originalFilename, declaredMIME string, sizeBytes int64) (UploadMetadata, error) {
+	originalFilename = sanitizeOriginalFilename(originalFilename)
+
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return UploadMetadata{}, fmt.Errorf("stat upload: %w", err)
@@ -126,4 +128,13 @@ func containsMIME(allowed []string, candidate string) bool {
 	}
 
 	return false
+}
+
+func sanitizeOriginalFilename(value string) string {
+	value = strings.TrimSpace(filepath.Base(value))
+	if value == "." || value == "/" || value == "" {
+		return "upload"
+	}
+
+	return value
 }

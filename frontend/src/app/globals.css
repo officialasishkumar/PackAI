@@ -1,5 +1,5 @@
 :root {
-  --background: #f4efe6;
+  --background: #f7f1e8;
   --foreground: #102231;
   --accent: #ce5f3e;
   --accent-strong: #96381c;
@@ -18,15 +18,16 @@ body {
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   background-image:
-    radial-gradient(circle at top left, rgba(206, 95, 62, 0.2), transparent 36%),
-    radial-gradient(circle at 80% 20%, rgba(43, 111, 83, 0.18), transparent 30%),
-    linear-gradient(180deg, #f5efe6 0%, #efe4d1 100%);
+    radial-gradient(circle at top left, rgba(206, 95, 62, 0.18), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(17, 93, 78, 0.18), transparent 28%),
+    linear-gradient(180deg, #f8f3eb 0%, #efe4d1 100%);
   font-family: var(--font-space-grotesk), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -20,6 +20,12 @@ const (
 )
 
 const (
+	MaxTripNameLength = 80
+	MaxTripItems      = 500
+	MaxItemNameLength = 120
+)
+
+const (
 	CategoryElectronics Category = "Electronics"
 	CategoryClothing    Category = "Clothing"
 	CategoryToiletries  Category = "Toiletries"
@@ -54,8 +60,8 @@ type TripItem struct {
 
 type StoredMedia struct {
 	StorageDriver string    `json:"storage_driver" bson:"storage_driver"`
-	Location      string    `json:"location" bson:"location"`
-	URL           string    `json:"url,omitempty" bson:"url,omitempty"`
+	Location      string    `json:"-" bson:"location"`
+	URL           string    `json:"-" bson:"url,omitempty"`
 	MIMEType      string    `json:"mime_type" bson:"mime_type"`
 	SizeBytes     int64     `json:"size_bytes" bson:"size_bytes"`
 	UploadedAt    time.Time `json:"uploaded_at" bson:"uploaded_at"`
@@ -117,12 +123,19 @@ func NormalizeStatus(value string) Status {
 }
 
 func PrepareItems(items []TripItem) ([]TripItem, error) {
+	if len(items) > MaxTripItems {
+		return nil, newValidationErrorf("a trip can contain at most %d items", MaxTripItems)
+	}
+
 	prepared := make([]TripItem, 0, len(items))
 
 	for index, item := range items {
 		name := strings.TrimSpace(item.Name)
 		if name == "" {
 			return nil, newValidationErrorf("item %d must have a name", index+1)
+		}
+		if len([]rune(name)) > MaxItemNameLength {
+			return nil, newValidationErrorf("item %d name must be %d characters or fewer", index+1, MaxItemNameLength)
 		}
 
 		if strings.TrimSpace(item.ItemID) == "" {

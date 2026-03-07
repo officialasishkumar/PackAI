@@ -36,7 +36,7 @@ func (a *LocalArchiver) Archive(_ context.Context, input ArchiveInput) (*Archive
 		return nil, fmt.Errorf("create local media path: %w", err)
 	}
 
-	destination, err := os.Create(destinationPath)
+	destination, err := os.OpenFile(destinationPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("create destination media file: %w", err)
 	}

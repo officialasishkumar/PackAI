@@ -11,17 +11,29 @@ import (
 
 func NewRouter(cfg config.Config, tripHandler *TripHandler) http.Handler {
 	mux := http.NewServeMux()
+	createLimiter := newFixedWindowLimiter(cfg.CreateRateLimit, time.Minute)
+	readLimiter := newFixedWindowLimiter(cfg.ReadRateLimit, time.Minute)
+	updateLimiter := newFixedWindowLimiter(cfg.UpdateRateLimit, time.Minute)
+
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{
 			"status": "ok",
 			"time":   time.Now().UTC().Format(time.RFC3339),
 		})
 	})
-	mux.HandleFunc("POST /api/v1/trips", tripHandler.CreateTrip)
-	mux.HandleFunc("GET /api/v1/trips/{id}", tripHandler.GetTrip)
-	mux.HandleFunc("PUT /api/v1/trips/{id}/items", tripHandler.UpdateTripItems)
+	mux.Handle("POST /api/v1/trips", createLimiter.Middleware(http.HandlerFunc(tripHandler.CreateTrip)))
+	mux.Handle("GET /api/v1/trips/{id}", readLimiter.Middleware(http.HandlerFunc(tripHandler.GetTrip)))
+	mux.Handle("PUT /api/v1/trips/{id}/items", updateLimiter.Middleware(http.HandlerFunc(tripHandler.UpdateTripItems)))
 
-	return withCORS(cfg.AllowedOrigins, mux)
+	return chain(
+		mux,
+		withRecovery,
+		withRequestID,
+		withSecurityHeaders,
+		func(next http.Handler) http.Handler {
+			return withCORS(cfg.AllowedOrigins, next)
+		},
+	)
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {
@@ -34,10 +46,18 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 }
 
 func withCORS(allowedOrigins []string, next http.Handler) http.Handler {
-	allowAll := len(allowedOrigins) == 0
+	allowAll := false
 	allowed := make(map[string]struct{}, len(allowedOrigins))
 	for _, origin := range allowedOrigins {
-		allowed[strings.TrimSpace(origin)] = struct{}{}
+		origin = strings.TrimSpace(origin)
+		if origin == "" {
+			continue
+		}
+		if origin == "*" {
+			allowAll = true
+			continue
+		}
+		allowed[origin] = struct{}{}
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +73,7 @@ func withCORS(allowedOrigins []string, next http.Handler) http.Handler {
 
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
+		w.Header().Set("Access-Control-Max-Age", "600")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

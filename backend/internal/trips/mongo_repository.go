@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongoRepository struct {
@@ -17,6 +18,30 @@ type MongoRepository struct {
 
 func NewMongoRepository(collection *mongo.Collection) *MongoRepository {
 	return &MongoRepository{collection: collection}
+}
+
+func (r *MongoRepository) EnsureIndexes(ctx context.Context) error {
+	_, err := r.collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: "user_id", Value: 1},
+				{Key: "created_at", Value: -1},
+			},
+			Options: options.Index().SetName("user_id_created_at"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "status", Value: 1},
+				{Key: "updated_at", Value: -1},
+			},
+			Options: options.Index().SetName("status_updated_at"),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("create trip indexes: %w", err)
+	}
+
+	return nil
 }
 
 func (r *MongoRepository) Create(ctx context.Context, trip *Trip) error {

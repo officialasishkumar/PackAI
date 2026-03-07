@@ -37,11 +37,21 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	}
 
 	repository := trips.NewMongoRepository(mongoClient.Database(cfg.MongoDatabase).Collection("trips"))
+	indexCtx, cancelIndexes := context.WithTimeout(ctx, 10*time.Second)
+	defer cancelIndexes()
 
-	archiver, err := storage.NewArchiver(ctx, cfg)
-	if err != nil {
+	if err := repository.EnsureIndexes(indexCtx); err != nil {
 		_ = mongoClient.Disconnect(context.Background())
-		return nil, fmt.Errorf("build archiver: %w", err)
+		return nil, fmt.Errorf("ensure mongo indexes: %w", err)
+	}
+
+	var archiver storage.Archiver
+	if cfg.RetainUploadedMedia() {
+		archiver, err = storage.NewArchiver(ctx, cfg)
+		if err != nil {
+			_ = mongoClient.Disconnect(context.Background())
+			return nil, fmt.Errorf("build archiver: %w", err)
+		}
 	}
 
 	extractor, err := ai.NewGeminiExtractor(ctx, cfg)
@@ -50,8 +60,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("build extractor: %w", err)
 	}
 
-	service := trips.NewService(repository, archiver, extractor)
-	handler := httpapi.NewTripHandler(service)
+	service := trips.NewService(repository, archiver, extractor, cfg.RetainUploadedMedia())
+	handler := httpapi.NewTripHandler(cfg, service)
 
 	return &App{
 		Handler:     httpapi.NewRouter(cfg, handler),

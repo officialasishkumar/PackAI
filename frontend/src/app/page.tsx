@@ -2,14 +2,38 @@ import { TripCreateForm } from "@/components/trip-create-form";
 
 import styles from "./home.module.css";
 
+const PROMISES = [
+  {
+    label: "Storage discipline",
+    value: "Uploads are disposable by default, so the checklist survives, not the raw bag photo.",
+  },
+  {
+    label: "Scale posture",
+    value: "Go request limits, Mongo indexes, and bounded payloads keep the API from drifting into demo-only patterns.",
+  },
+  {
+    label: "Travel UX",
+    value: "Offline caching and repacking mode keep the useful part available in bad airport Wi-Fi.",
+  },
+];
+
+const SIGNALS = [
+  "AI extraction locked to JSON",
+  "Short-form image/video capture",
+  "Manual edits when the suitcase is layered",
+  "Return-trip checklist with completion tracking",
+];
+
 export default function Home() {
   return (
     <main className={styles.page}>
       <section className={styles.story}>
+        <div className={styles.orb} />
         <div className={styles.badgeRow}>
           <span className={styles.badge}>Next.js PWA</span>
           <span className={styles.badge}>Go + MongoDB</span>
           <span className={styles.badge}>Gemini-powered extraction</span>
+          <span className={styles.badge}>Deletion-first uploads</span>
         </div>
 
         <div className={styles.headline}>
@@ -18,8 +42,16 @@ export default function Home() {
           <p>
             Capture a packed bag once, let Gemini pull out visible items, then
             travel with a categorized checklist that still opens when your
-            connection drops.
+            connection drops and does not force you to retain raw luggage media forever.
           </p>
+        </div>
+
+        <div className={styles.signalBoard}>
+          {SIGNALS.map((signal) => (
+            <span key={signal} className={styles.signalChip}>
+              {signal}
+            </span>
+          ))}
         </div>
 
         <div className={styles.stats}>
@@ -39,6 +71,15 @@ export default function Home() {
             <span>Offline</span>
             <strong>Previously opened trips remain visible from local cache</strong>
           </article>
+        </div>
+
+        <div className={styles.promiseGrid}>
+          {PROMISES.map((promise) => (
+            <article key={promise.label} className={styles.promiseCard}>
+              <span>{promise.label}</span>
+              <strong>{promise.value}</strong>
+            </article>
+          ))}
         </div>
 
         <div className={styles.steps}>

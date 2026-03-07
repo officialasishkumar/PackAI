@@ -13,15 +13,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
 )
 
 type S3Archiver struct {
-	client     *s3.Client
-	presigner  *s3.PresignClient
-	bucket     string
-	prefix     string
-	presignTTL time.Duration
+	client       *s3.Client
+	bucket       string
+	prefix       string
+	storageClass s3types.StorageClass
 }
 
 func NewS3Archiver(ctx context.Context, cfg config.Config) (*S3Archiver, error) {
@@ -37,14 +37,23 @@ func NewS3Archiver(ctx context.Context, cfg config.Config) (*S3Archiver, error) 
 		return nil, fmt.Errorf("load aws config: %w", err)
 	}
 
-	client := s3.NewFromConfig(awsCfg)
+	client := s3.NewFromConfig(awsCfg, func(options *s3.Options) {
+		if cfg.S3Endpoint != "" {
+			options.BaseEndpoint = aws.String(cfg.S3Endpoint)
+		}
+		options.UsePathStyle = cfg.S3ForcePathStyle
+	})
+
+	var storageClass s3types.StorageClass
+	if cfg.S3StorageClass != "" {
+		storageClass = s3types.StorageClass(cfg.S3StorageClass)
+	}
 
 	return &S3Archiver{
-		client:     client,
-		presigner:  s3.NewPresignClient(client),
-		bucket:     cfg.S3Bucket,
-		prefix:     strings.Trim(cfg.S3Prefix, "/"),
-		presignTTL: cfg.S3PresignTTL,
+		client:       client,
+		bucket:       cfg.S3Bucket,
+		prefix:       strings.Trim(cfg.S3Prefix, "/"),
+		storageClass: storageClass,
 	}, nil
 }
 
@@ -62,29 +71,23 @@ func (a *S3Archiver) Archive(ctx context.Context, input ArchiveInput) (*Archived
 	keyParts = append(keyParts, time.Now().UTC().Format("2006/01/02"), uuid.NewString()+filepath.Ext(input.FileName))
 	key := strings.Join(keyParts, "/")
 
-	if _, err := a.client.PutObject(ctx, &s3.PutObjectInput{
+	putInput := &s3.PutObjectInput{
 		Bucket:      aws.String(a.bucket),
 		Key:         aws.String(key),
 		Body:        file,
 		ContentType: aws.String(input.MIMEType),
-	}); err != nil {
-		return nil, fmt.Errorf("upload to s3: %w", err)
+	}
+	if a.storageClass != "" {
+		putInput.StorageClass = a.storageClass
 	}
 
-	presigned, err := a.presigner.PresignGetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(a.bucket),
-		Key:    aws.String(key),
-	}, func(options *s3.PresignOptions) {
-		options.Expires = a.presignTTL
-	})
-	if err != nil {
-		return nil, fmt.Errorf("presign s3 object: %w", err)
+	if _, err := a.client.PutObject(ctx, putInput); err != nil {
+		return nil, fmt.Errorf("upload to s3: %w", err)
 	}
 
 	return &ArchivedMedia{
 		StorageDriver: "s3",
 		Location:      fmt.Sprintf("s3://%s/%s", a.bucket, key),
-		URL:           presigned.URL,
 		MIMEType:      input.MIMEType,
 		SizeBytes:     input.SizeBytes,
 		UploadedAt:    time.Now().UTC(),

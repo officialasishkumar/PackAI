@@ -28,16 +28,18 @@ type UpdateItemsInput struct {
 }
 
 type Service struct {
-	repository Repository
-	archiver   storage.Archiver
-	extractor  Extractor
+	repository  Repository
+	archiver    storage.Archiver
+	extractor   Extractor
+	retainMedia bool
 }
 
-func NewService(repository Repository, archiver storage.Archiver, extractor Extractor) *Service {
+func NewService(repository Repository, archiver storage.Archiver, extractor Extractor, retainMedia bool) *Service {
 	return &Service{
-		repository: repository,
-		archiver:   archiver,
-		extractor:  extractor,
+		repository:  repository,
+		archiver:    archiver,
+		extractor:   extractor,
+		retainMedia: retainMedia,
 	}
 }
 
@@ -46,10 +48,16 @@ func (s *Service) CreateTrip(ctx context.Context, input CreateTripInput) (*Trip,
 	if tripName == "" {
 		return nil, newValidationErrorf("trip_name is required")
 	}
+	if len([]rune(tripName)) > MaxTripNameLength {
+		return nil, newValidationErrorf("trip_name must be %d characters or fewer", MaxTripNameLength)
+	}
 
 	userID := strings.TrimSpace(input.UserID)
 	if userID == "" {
 		userID = "local-demo-user"
+	}
+	if len([]rune(userID)) > 128 {
+		return nil, newValidationErrorf("user_id must be 128 characters or fewer")
 	}
 
 	items, err := s.extractor.ExtractItems(ctx, input.MediaPath, input.Media)
@@ -62,16 +70,32 @@ func (s *Service) CreateTrip(ctx context.Context, input CreateTripInput) (*Trip,
 		return nil, err
 	}
 
-	archivedMedia, err := s.archiver.Archive(ctx, storage.ArchiveInput{
-		LocalPath:  input.MediaPath,
-		FileName:   input.Media.OriginalFilename,
-		Extension:  input.Media.Extension,
-		MIMEType:   input.Media.MIMEType,
-		SizeBytes:  input.Media.SizeBytes,
-		ObjectName: strings.TrimSuffix(filepath.Base(input.Media.OriginalFilename), filepath.Ext(input.Media.OriginalFilename)),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("archive upload: %w", err)
+	var storedMedia *StoredMedia
+	if s.retainMedia {
+		if s.archiver == nil {
+			return nil, fmt.Errorf("media retention is enabled but no archiver is configured")
+		}
+
+		archivedMedia, err := s.archiver.Archive(ctx, storage.ArchiveInput{
+			LocalPath:  input.MediaPath,
+			FileName:   input.Media.OriginalFilename,
+			Extension:  input.Media.Extension,
+			MIMEType:   input.Media.MIMEType,
+			SizeBytes:  input.Media.SizeBytes,
+			ObjectName: strings.TrimSuffix(filepath.Base(input.Media.OriginalFilename), filepath.Ext(input.Media.OriginalFilename)),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("archive upload: %w", err)
+		}
+
+		storedMedia = &StoredMedia{
+			StorageDriver: archivedMedia.StorageDriver,
+			Location:      archivedMedia.Location,
+			URL:           archivedMedia.URL,
+			MIMEType:      archivedMedia.MIMEType,
+			SizeBytes:     archivedMedia.SizeBytes,
+			UploadedAt:    archivedMedia.UploadedAt,
+		}
 	}
 
 	now := time.Now().UTC()
@@ -82,14 +106,7 @@ func (s *Service) CreateTrip(ctx context.Context, input CreateTripInput) (*Trip,
 		UpdatedAt: now,
 		Status:    StatusPacking,
 		Items:     preparedItems,
-		Media: &StoredMedia{
-			StorageDriver: archivedMedia.StorageDriver,
-			Location:      archivedMedia.Location,
-			URL:           archivedMedia.URL,
-			MIMEType:      archivedMedia.MIMEType,
-			SizeBytes:     archivedMedia.SizeBytes,
-			UploadedAt:    archivedMedia.UploadedAt,
-		},
+		Media:     storedMedia,
 	}
 
 	if err := s.repository.Create(ctx, trip); err != nil {

@@ -11,13 +11,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/officialasishkumar/PackAI/backend/internal/ai"
+	"github.com/officialasishkumar/PackAI/backend/internal/config"
 	"github.com/officialasishkumar/PackAI/backend/internal/media"
 	"github.com/officialasishkumar/PackAI/backend/internal/trips"
 )
 
 const maxMultipartBodyBytes = media.MaxUploadBytes + (1 << 20)
+const maxItemsUpdateBodyBytes int64 = 1 << 20
 
 type TripService interface {
 	CreateTrip(ctx context.Context, input trips.CreateTripInput) (*trips.Trip, error)
@@ -26,17 +29,25 @@ type TripService interface {
 }
 
 type TripHandler struct {
-	service TripService
+	service           TripService
+	createTripTimeout time.Duration
+	readTripTimeout   time.Duration
+	updateTripTimeout time.Duration
 }
 
-func NewTripHandler(service TripService) *TripHandler {
-	return &TripHandler{service: service}
+func NewTripHandler(cfg config.Config, service TripService) *TripHandler {
+	return &TripHandler{
+		service:           service,
+		createTripTimeout: cfg.CreateTripTimeout,
+		readTripTimeout:   cfg.ReadTripTimeout,
+		updateTripTimeout: cfg.UpdateTripTimeout,
+	}
 }
 
 func (h *TripHandler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxMultipartBodyBytes)
 	if err := r.ParseMultipartForm(maxMultipartBodyBytes); err != nil {
-		writeError(w, http.StatusBadRequest, "multipart request is invalid or too large")
+		h.writeParseError(w, err, "multipart request is invalid or too large")
 		return
 	}
 
@@ -64,7 +75,10 @@ func (h *TripHandler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trip, err := h.service.CreateTrip(r.Context(), trips.CreateTripInput{
+	ctx, cancel := context.WithTimeout(r.Context(), h.createTripTimeout)
+	defer cancel()
+
+	trip, err := h.service.CreateTrip(ctx, trips.CreateTripInput{
 		TripName:  r.FormValue("trip_name"),
 		UserID:    r.FormValue("user_id"),
 		Media:     metadata,
@@ -79,7 +93,10 @@ func (h *TripHandler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TripHandler) GetTrip(w http.ResponseWriter, r *http.Request) {
-	trip, err := h.service.GetTrip(r.Context(), r.PathValue("id"))
+	ctx, cancel := context.WithTimeout(r.Context(), h.readTripTimeout)
+	defer cancel()
+
+	trip, err := h.service.GetTrip(ctx, r.PathValue("id"))
 	if err != nil {
 		h.writeDomainError(w, err)
 		return
@@ -91,9 +108,10 @@ func (h *TripHandler) GetTrip(w http.ResponseWriter, r *http.Request) {
 func (h *TripHandler) UpdateTripItems(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxItemsUpdateBodyBytes)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "failed to read request body")
+		h.writeParseError(w, err, "failed to read request body")
 		return
 	}
 
@@ -103,7 +121,10 @@ func (h *TripHandler) UpdateTripItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trip, err := h.service.UpdateItems(r.Context(), r.PathValue("id"), input)
+	ctx, cancel := context.WithTimeout(r.Context(), h.updateTripTimeout)
+	defer cancel()
+
+	trip, err := h.service.UpdateItems(ctx, r.PathValue("id"), input)
 	if err != nil {
 		h.writeDomainError(w, err)
 		return
@@ -122,11 +143,23 @@ func (h *TripHandler) writeDomainError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusNotFound, "trip not found")
 	case errors.Is(err, media.ErrUnsupportedType), errors.Is(err, media.ErrUploadTooLarge):
 		writeError(w, http.StatusBadRequest, err.Error())
+	case errors.Is(err, context.DeadlineExceeded):
+		writeError(w, http.StatusGatewayTimeout, "request timed out")
 	case errors.Is(err, ai.ErrUnavailable):
 		writeError(w, http.StatusServiceUnavailable, err.Error())
 	default:
 		writeError(w, http.StatusInternalServerError, "internal server error")
 	}
+}
+
+func (h *TripHandler) writeParseError(w http.ResponseWriter, err error, fallback string) {
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		writeError(w, http.StatusRequestEntityTooLarge, "request body exceeds the allowed size")
+		return
+	}
+
+	writeError(w, http.StatusBadRequest, fallback)
 }
 
 func decodeUpdateItemsRequest(body []byte) (trips.UpdateItemsInput, error) {

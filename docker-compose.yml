@@ -11,6 +11,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    networks:
+      - packai
     depends_on:
       backend:
         condition: service_healthy
@@ -25,18 +27,29 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
       MONGODB_URI: ${MONGODB_URI:-mongodb://database:27017}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-packai}
+      MEDIA_RETENTION_MODE: ${MEDIA_RETENTION_MODE:-discard}
       MEDIA_STORAGE_DRIVER: ${MEDIA_STORAGE_DRIVER:-local}
       LOCAL_MEDIA_DIR: ${LOCAL_MEDIA_DIR:-/app/tmp/media}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      CREATE_TRIP_TIMEOUT: ${CREATE_TRIP_TIMEOUT:-2m}
+      READ_TRIP_TIMEOUT: ${READ_TRIP_TIMEOUT:-10s}
+      UPDATE_TRIP_TIMEOUT: ${UPDATE_TRIP_TIMEOUT:-15s}
+      CREATE_RATE_LIMIT_PER_MINUTE: ${CREATE_RATE_LIMIT_PER_MINUTE:-12}
+      READ_RATE_LIMIT_PER_MINUTE: ${READ_RATE_LIMIT_PER_MINUTE:-180}
+      UPDATE_RATE_LIMIT_PER_MINUTE: ${UPDATE_RATE_LIMIT_PER_MINUTE:-60}
       AWS_REGION: ${AWS_REGION:-}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_PREFIX: ${S3_PREFIX:-packai/uploads}
-      S3_PRESIGN_TTL: ${S3_PRESIGN_TTL:-15m}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
+      S3_STORAGE_CLASS: ${S3_STORAGE_CLASS:-}
     ports:
       - "8080:8080"
     volumes:
       - ./backend:/app
+    networks:
+      - packai
     depends_on:
       database:
         condition: service_healthy
@@ -48,10 +61,10 @@ services:
 
   database:
     image: mongo:8.0
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - packai
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
@@ -61,3 +74,6 @@ services:
 volumes:
   mongodb_data:
 
+networks:
+  packai:
+    driver: bridge

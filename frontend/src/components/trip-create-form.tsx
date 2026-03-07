@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 
 import { createTrip, getErrorMessage } from "@/lib/api";
+import { getOrCreateDeviceId } from "@/lib/device-id";
 import { cacheTrip } from "@/lib/offline-cache";
 import { prepareMedia } from "@/lib/media";
 
@@ -20,6 +21,21 @@ interface SelectedMedia {
   previewUrl: string;
   note: string;
 }
+
+const TRUST_POINTS = [
+  {
+    title: "Deletion-first",
+    copy: "Raw uploads are discarded after analysis by default, so storage growth stays predictable.",
+  },
+  {
+    title: "Low-bandwidth aware",
+    copy: "Images are compressed on-device before upload to keep mobile capture snappy.",
+  },
+  {
+    title: "Offline-ready",
+    copy: "Your checklist remains available from local cache after the first successful load.",
+  },
+];
 
 export function TripCreateForm() {
   const router = useRouter();
@@ -94,6 +110,7 @@ export function TripCreateForm() {
       const trip = await createTrip({
         tripName: tripName.trim(),
         media: selectedMedia.file,
+        userId: getOrCreateDeviceId(),
       });
 
       cacheTrip(trip);
@@ -113,11 +130,15 @@ export function TripCreateForm() {
   return (
     <form className={styles.card} onSubmit={handleSubmit}>
       <div className={styles.header}>
-        <p className={styles.kicker}>Create a trip</p>
+        <div className={styles.headerTop}>
+          <p className={styles.kicker}>Create a trip</p>
+          <span className={styles.privacyPill}>Privacy-first upload flow</span>
+        </div>
         <h2>Upload once, repack with confidence later.</h2>
         <p className={styles.copy}>
           PackAI reads a luggage photo or short MP4, turns visible items into
-          a categorized checklist, and keeps the trip cached for offline viewing.
+          a categorized checklist, and keeps the trip cached for offline viewing
+          without keeping every raw capture around forever.
         </p>
       </div>
 
@@ -166,6 +187,7 @@ export function TripCreateForm() {
           )
         ) : (
           <div className={styles.previewEmpty}>
+            <span className={styles.previewBadge}>Rear camera preferred</span>
             <strong>Mobile capture ready</strong>
             <p>Use the rear camera for a packed suitcase photo, or a short pan video.</p>
           </div>
@@ -176,6 +198,15 @@ export function TripCreateForm() {
         {selectedMedia?.note ??
           "Tip: spread items so the model can clearly see distinct objects and counts."}
       </p>
+
+      <section className={styles.trustGrid} aria-label="Product guarantees">
+        {TRUST_POINTS.map((point) => (
+          <article key={point.title} className={styles.trustCard}>
+            <strong>{point.title}</strong>
+            <p>{point.copy}</p>
+          </article>
+        ))}
+      </section>
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -188,6 +219,11 @@ export function TripCreateForm() {
               ? "Opening checklist..."
               : "Create checklist"}
       </button>
+
+      <p className={styles.footnote}>
+        Optional archival is still supported on the backend, including S3-compatible
+        object stores, but the default path is disposable processing.
+      </p>
     </form>
   );
 }

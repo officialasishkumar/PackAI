@@ -22,7 +22,7 @@ export interface TripItem {
 
 export interface StoredMedia {
   storage_driver: string;
-  location: string;
+  location?: string;
   url?: string;
   mime_type: string;
   size_bytes: number;
@@ -66,4 +66,3 @@ export function countTotalUnits(items: TripItem[]): number {
 export function countPackedItems(items: TripItem[]): number {
   return items.filter((item) => item.is_packed_for_return).length;
 }
-

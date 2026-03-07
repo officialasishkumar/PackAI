@@ -184,6 +184,10 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
     category,
     items: visibleItems.filter((item) => item.category === category),
   })).filter((group) => group.items.length > 0);
+  const categoryBreakdown = CATEGORIES.map((category) => ({
+    category,
+    count: items.filter((item) => item.category === category).length,
+  })).filter((group) => group.count > 0);
 
   if (isLoading && !trip) {
     return (
@@ -215,11 +219,14 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
   const completion = items.length
     ? Math.round((packedCount / items.length) * 100)
     : 0;
+  const mediaPolicy = trip.media
+    ? `Raw capture archived on ${trip.media.storage_driver}.`
+    : "Raw capture discarded after AI extraction.";
 
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <div>
+        <div className={styles.headerCopy}>
           <Link href="/" className={styles.backLink}>
             New trip
           </Link>
@@ -231,18 +238,44 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
           </p>
         </div>
 
-        <button
-          className={styles.saveButton}
-          type="button"
-          disabled={isSaving || !isDirty}
-          onClick={handleSave}
-        >
-          {isSaving ? "Saving..." : isDirty ? "Save changes" : "Saved"}
-        </button>
+        <div className={styles.headerActions}>
+          <div className={styles.completionCard}>
+            <span>Return progress</span>
+            <strong>{completion}%</strong>
+            <div className={styles.progressTrack} aria-hidden="true">
+              <div
+                className={styles.progressFill}
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+          </div>
+
+          <button
+            className={styles.saveButton}
+            type="button"
+            disabled={isSaving || !isDirty}
+            onClick={handleSave}
+          >
+            {isSaving ? "Saving..." : isDirty ? "Save changes" : "Saved"}
+          </button>
+        </div>
       </header>
 
       <section className={styles.layout}>
         <aside className={styles.sidebar}>
+          <div className={styles.heroPanel}>
+            <div>
+              <p className={styles.panelLabel}>Checklist posture</p>
+              <h2>{mode === "packing" ? "Refine the master list." : "Verify the return loadout."}</h2>
+            </div>
+            <p className={styles.panelCopy}>
+              {mode === "packing"
+                ? "Clean up AI output, rename edge cases, and add the hidden pieces that were layered under clothes."
+                : "Tap items as they go back into the bag. Completion reaches 100% when every item is accounted for."}
+            </p>
+            <p className={styles.policyNote}>{mediaPolicy}</p>
+          </div>
+
           <div className={styles.panel}>
             <p className={styles.panelLabel}>Modes</p>
             <div className={styles.modeSwitch}>
@@ -265,6 +298,15 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
               Packing mode is for cleanup and manual corrections. Repacking mode
               turns the list into the return-trip check-off flow.
             </p>
+          </div>
+
+          <div className={styles.categoryRail}>
+            {categoryBreakdown.map((group) => (
+              <article key={group.category} className={styles.categoryChip}>
+                <strong>{group.category}</strong>
+                <span>{group.count} items</span>
+              </article>
+            ))}
           </div>
 
           <div className={styles.statsGrid}>
@@ -349,7 +391,10 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
               <article className={styles.group} key={group.category}>
                 <header className={styles.groupHeader}>
                   <h2>{group.category}</h2>
-                  <span>{group.items.length} items</span>
+                  <span>
+                    {group.items.length} items ·{" "}
+                    {group.items.reduce((sum, item) => sum + item.quantity, 0)} units
+                  </span>
                 </header>
 
                 <div className={styles.groupList}>

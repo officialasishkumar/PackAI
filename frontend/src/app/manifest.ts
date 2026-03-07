@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Create packing and repacking checklists from luggage photos and short videos.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f4efe6",
-    theme_color: "#f4efe6",
+    background_color: "#f7f1e8",
+    theme_color: "#f7f1e8",
     orientation: "portrait",
     icons: [
       {
@@ -26,4 +26,3 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   };
 }
-

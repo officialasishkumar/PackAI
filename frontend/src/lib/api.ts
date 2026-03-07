@@ -24,10 +24,14 @@ interface UpdateItemsPayload {
 export async function createTrip(input: {
   tripName: string;
   media: File;
+  userId?: string;
 }): Promise<Trip> {
   const formData = new FormData();
   formData.set("trip_name", input.tripName);
   formData.set("media", input.media);
+  if (input.userId) {
+    formData.set("user_id", input.userId);
+  }
 
   return apiRequest<Trip>("/api/v1/trips", {
     method: "POST",
@@ -103,4 +107,3 @@ function extractMessage(payload: unknown): string {
 
   return "Request failed.";
 }
-
