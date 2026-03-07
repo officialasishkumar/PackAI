@@ -8,9 +8,10 @@ import {
   useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
+import { AuthRequiredCard } from "@/components/auth-required-card";
 import { createTrip, getErrorMessage } from "@/lib/api";
-import { getOrCreateDeviceId } from "@/lib/device-id";
 import { cacheTrip } from "@/lib/offline-cache";
 import { prepareMedia } from "@/lib/media";
 
@@ -22,26 +23,37 @@ interface SelectedMedia {
   note: string;
 }
 
+interface SharedLocation {
+  latitude: number;
+  longitude: number;
+  accuracyMeters?: number;
+  capturedAt: string;
+}
+
 const TRUST_POINTS = [
   {
+    title: "Google-backed history",
+    copy: "Signed-in trips can be revisited from the dashboard without exposing the source image there.",
+  },
+  {
+    title: "Location is optional",
+    copy: "You choose whether to attach approximate location so the dashboard can show where a list was created.",
+  },
+  {
     title: "Deletion-first",
-    copy: "Raw uploads are discarded after analysis by default, so storage growth stays predictable.",
-  },
-  {
-    title: "Low-bandwidth aware",
-    copy: "Images are compressed on-device before upload to keep mobile capture snappy.",
-  },
-  {
-    title: "Offline-ready",
-    copy: "Your checklist remains available from local cache after the first successful load.",
+    copy: "Raw uploads are still discarded after analysis by default, so storage stays predictable.",
   },
 ];
 
 export function TripCreateForm() {
   const router = useRouter();
+  const { status } = useSession();
   const [isRedirecting, startRedirect] = useTransition();
   const [tripName, setTripName] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia | null>(null);
+  const [wantsLocation, setWantsLocation] = useState(false);
+  const [sharedLocation, setSharedLocation] = useState<SharedLocation | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +102,45 @@ export function TripCreateForm() {
     }
   }
 
+  function handleLocationToggle(nextValue: boolean) {
+    setWantsLocation(nextValue);
+    if (!nextValue) {
+      setSharedLocation(null);
+      setIsLocating(false);
+    }
+  }
+
+  async function captureLocation(): Promise<void> {
+    if (!("geolocation" in navigator)) {
+      setError("This device does not support location capture.");
+      return;
+    }
+
+    setError(null);
+    setIsLocating(true);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 5 * 60 * 1000,
+        });
+      });
+
+      setSharedLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracyMeters: position.coords.accuracy,
+        capturedAt: new Date(position.timestamp).toISOString(),
+      });
+    } catch {
+      setError("Location access was denied or unavailable.");
+    } finally {
+      setIsLocating(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -103,6 +154,11 @@ export function TripCreateForm() {
       return;
     }
 
+    if (wantsLocation && !sharedLocation) {
+      setError("Capture your location first, or turn off location sharing.");
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
@@ -110,7 +166,7 @@ export function TripCreateForm() {
       const trip = await createTrip({
         tripName: tripName.trim(),
         media: selectedMedia.file,
-        userId: getOrCreateDeviceId(),
+        location: sharedLocation ?? undefined,
       });
 
       cacheTrip(trip);
@@ -124,21 +180,38 @@ export function TripCreateForm() {
     }
   }
 
-  const isBusy = isPreparing || isSubmitting || isRedirecting;
+  const isBusy = isPreparing || isSubmitting || isRedirecting || isLocating;
   const isVideo = selectedMedia?.file.type === "video/mp4";
+
+  if (status === "loading") {
+    return (
+      <section className={styles.card}>
+        <p className={styles.kicker}>Session</p>
+        <h2>Preparing your signed-in workspace…</h2>
+      </section>
+    );
+  }
+
+  if (status !== "authenticated") {
+    return (
+      <AuthRequiredCard
+        title="Sign in to create trips that appear on your dashboard."
+        copy="Google auth keeps trip ownership clean, and it lets PackAI show when and where a checklist was generated without exposing the uploaded image."
+      />
+    );
+  }
 
   return (
     <form className={styles.card} onSubmit={handleSubmit}>
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <p className={styles.kicker}>Create a trip</p>
-          <span className={styles.privacyPill}>Privacy-first upload flow</span>
+          <span className={styles.privacyPill}>Dashboard-ready capture flow</span>
         </div>
-        <h2>Upload once, repack with confidence later.</h2>
+        <h2>Generate the list, then keep the context.</h2>
         <p className={styles.copy}>
-          PackAI reads a luggage photo or short MP4, turns visible items into
-          a categorized checklist, and keeps the trip cached for offline viewing
-          without keeping every raw capture around forever.
+          Every signed-in trip can land on your dashboard with its creation day
+          and optional location. The dashboard still leaves the source media out.
         </p>
       </div>
 
@@ -167,6 +240,47 @@ export function TripCreateForm() {
           JPEG, PNG, or MP4 up to 15 seconds. Images are compressed client-side.
         </span>
       </label>
+
+      <section className={styles.locationCard}>
+        <div className={styles.locationHeader}>
+          <div>
+            <p className={styles.kicker}>Location sharing</p>
+            <strong>Add approximate location to the dashboard</strong>
+          </div>
+
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={wantsLocation}
+              onChange={(event) => handleLocationToggle(event.target.checked)}
+            />
+            <span>{wantsLocation ? "On" : "Off"}</span>
+          </label>
+        </div>
+
+        <p className={styles.locationCopy}>
+          Optional. If you enable this, the browser will ask whether you want to
+          share your current location for trip history only.
+        </p>
+
+        {wantsLocation ? (
+          <div className={styles.locationActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={captureLocation}
+              disabled={isBusy}
+            >
+              {isLocating ? "Capturing location..." : "Use current location"}
+            </button>
+            <p className={styles.locationNote}>
+              {sharedLocation
+                ? `Approximate coordinates saved: ${sharedLocation.latitude.toFixed(2)}, ${sharedLocation.longitude.toFixed(2)}`
+                : "No location captured yet."}
+            </p>
+          </div>
+        ) : null}
+      </section>
 
       <div className={styles.preview}>
         {selectedMedia ? (
@@ -213,16 +327,18 @@ export function TripCreateForm() {
       <button className={styles.submit} type="submit" disabled={isBusy}>
         {isPreparing
           ? "Preparing media..."
-          : isSubmitting
-            ? "Analyzing luggage..."
-            : isRedirecting
-              ? "Opening checklist..."
-              : "Create checklist"}
+          : isLocating
+            ? "Capturing location..."
+            : isSubmitting
+              ? "Analyzing luggage..."
+              : isRedirecting
+                ? "Opening checklist..."
+                : "Create checklist"}
       </button>
 
       <p className={styles.footnote}>
-        Optional archival is still supported on the backend, including S3-compatible
-        object stores, but the default path is disposable processing.
+        The dashboard stores date, trip metadata, and optional approximate
+        coordinates. It does not render the uploaded image there.
       </p>
     </form>
   );

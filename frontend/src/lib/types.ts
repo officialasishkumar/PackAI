@@ -29,6 +29,13 @@ export interface StoredMedia {
   uploaded_at: string;
 }
 
+export interface TripLocation {
+  latitude: number;
+  longitude: number;
+  accuracy_meters?: number;
+  captured_at?: string;
+}
+
 export interface Trip {
   _id: string;
   user_id: string;
@@ -37,7 +44,19 @@ export interface Trip {
   updated_at?: string;
   status: TripStatus;
   items: TripItem[];
+  location?: TripLocation;
   media?: StoredMedia;
+}
+
+export interface TripSummary {
+  _id: string;
+  trip_name: string;
+  created_at: string;
+  updated_at?: string;
+  status: TripStatus;
+  item_count: number;
+  total_units: number;
+  location?: TripLocation;
 }
 
 export function deriveWorkspaceMode(status?: TripStatus): WorkspaceMode {
@@ -65,4 +84,12 @@ export function countTotalUnits(items: TripItem[]): number {
 
 export function countPackedItems(items: TripItem[]): number {
   return items.filter((item) => item.is_packed_for_return).length;
+}
+
+export function formatTripLocation(location?: TripLocation): string {
+  if (!location) {
+    return "Location not shared";
+  }
+
+  return `Near ${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}`;
 }

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"crypto/subtle"
 	"log"
 	"math"
 	"net"
@@ -56,6 +57,28 @@ func withRecovery(next http.Handler) http.Handler {
 				writeError(w, http.StatusInternalServerError, "internal server error")
 			}
 		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func withInternalAPIAuth(expectedToken string, next http.Handler) http.Handler {
+	expectedToken = strings.TrimSpace(expectedToken)
+	if expectedToken == "" {
+		return next
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" || !strings.HasPrefix(r.URL.Path, "/api/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		token := strings.TrimSpace(r.Header.Get("X-Internal-Token"))
+		if subtle.ConstantTimeCompare([]byte(token), []byte(expectedToken)) != 1 {
+			writeError(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})

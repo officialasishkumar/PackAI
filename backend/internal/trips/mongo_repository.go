@@ -57,14 +57,46 @@ func (r *MongoRepository) Create(ctx context.Context, trip *Trip) error {
 	return nil
 }
 
-func (r *MongoRepository) GetByID(ctx context.Context, id string) (*Trip, error) {
+func (r *MongoRepository) ListByUser(ctx context.Context, userID string, limit int64) ([]TripSummary, error) {
+	filter := bson.D{{Key: "user_id", Value: strings.TrimSpace(userID)}}
+	findOptions := options.Find().
+		SetLimit(limit).
+		SetSort(bson.D{{Key: "created_at", Value: -1}})
+
+	cursor, err := r.collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, fmt.Errorf("list trips: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	summaries := make([]TripSummary, 0)
+	for cursor.Next(ctx) {
+		var trip Trip
+		if err := cursor.Decode(&trip); err != nil {
+			return nil, fmt.Errorf("decode trip: %w", err)
+		}
+		summaries = append(summaries, SummarizeTrip(trip))
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("iterate trips: %w", err)
+	}
+
+	return summaries, nil
+}
+
+func (r *MongoRepository) GetByID(ctx context.Context, id string, userID string) (*Trip, error) {
 	objectID, err := parseObjectID(id)
 	if err != nil {
 		return nil, err
 	}
 
 	var trip Trip
-	if err := r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: objectID}}).Decode(&trip); err != nil {
+	filter := bson.D{
+		{Key: "_id", Value: objectID},
+		{Key: "user_id", Value: strings.TrimSpace(userID)},
+	}
+	if err := r.collection.FindOne(ctx, filter).Decode(&trip); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, ErrNotFound
 		}
@@ -74,7 +106,7 @@ func (r *MongoRepository) GetByID(ctx context.Context, id string) (*Trip, error)
 	return &trip, nil
 }
 
-func (r *MongoRepository) UpdateItems(ctx context.Context, id string, items []TripItem, status Status) (*Trip, error) {
+func (r *MongoRepository) UpdateItems(ctx context.Context, id string, userID string, items []TripItem, status Status) (*Trip, error) {
 	objectID, err := parseObjectID(id)
 	if err != nil {
 		return nil, err
@@ -88,7 +120,10 @@ func (r *MongoRepository) UpdateItems(ctx context.Context, id string, items []Tr
 		}},
 	}
 
-	result, err := r.collection.UpdateByID(ctx, objectID, update)
+	result, err := r.collection.UpdateOne(ctx, bson.D{
+		{Key: "_id", Value: objectID},
+		{Key: "user_id", Value: strings.TrimSpace(userID)},
+	}, update)
 	if err != nil {
 		return nil, fmt.Errorf("update trip items: %w", err)
 	}
@@ -96,7 +131,7 @@ func (r *MongoRepository) UpdateItems(ctx context.Context, id string, items []Tr
 		return nil, ErrNotFound
 	}
 
-	return r.GetByID(ctx, id)
+	return r.GetByID(ctx, id, userID)
 }
 
 func parseObjectID(id string) (bson.ObjectID, error) {

@@ -13,14 +13,15 @@ const PROMISES = [
   },
   {
     label: "Travel UX",
-    value: "Offline caching and repacking mode keep the useful part available in bad airport Wi-Fi.",
+    value: "Offline caching, repacking mode, and a day-by-day dashboard keep the useful part available in bad airport Wi-Fi.",
   },
 ];
 
 const SIGNALS = [
+  "Google sign-in for owned trip history",
   "AI extraction locked to JSON",
   "Short-form image/video capture",
-  "Manual edits when the suitcase is layered",
+  "Optional location sharing for dashboard context",
   "Return-trip checklist with completion tracking",
 ];
 

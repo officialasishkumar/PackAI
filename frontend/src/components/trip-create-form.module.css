@@ -108,6 +108,57 @@
   font-size: 0.95rem;
 }
 
+.locationCard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 1.4rem;
+  border: 1px solid rgba(16, 34, 49, 0.08);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.locationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.locationHeader strong {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.toggle input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.locationCopy,
+.locationNote {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.locationActions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.secondaryButton {
+  background: rgba(16, 34, 49, 0.92);
+}
+
 .preview {
   min-height: 17rem;
   overflow: hidden;

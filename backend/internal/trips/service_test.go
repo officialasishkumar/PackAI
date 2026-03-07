@@ -20,11 +20,15 @@ func (s *stubRepository) Create(_ context.Context, trip *Trip) error {
 	return nil
 }
 
-func (s *stubRepository) GetByID(_ context.Context, _ string) (*Trip, error) {
+func (s *stubRepository) ListByUser(_ context.Context, _ string, _ int64) ([]TripSummary, error) {
 	return nil, nil
 }
 
-func (s *stubRepository) UpdateItems(_ context.Context, _ string, _ []TripItem, _ Status) (*Trip, error) {
+func (s *stubRepository) GetByID(_ context.Context, _ string, _ string) (*Trip, error) {
+	return nil, nil
+}
+
+func (s *stubRepository) UpdateItems(_ context.Context, _ string, _ string, _ []TripItem, _ Status) (*Trip, error) {
 	return nil, nil
 }
 
@@ -65,6 +69,7 @@ func TestCreateTripDiscardsRawMediaByDefault(t *testing.T) {
 
 	trip, err := service.CreateTrip(context.Background(), CreateTripInput{
 		TripName: "Goa",
+		UserID:   "google-user",
 		Media: media.UploadMetadata{
 			OriginalFilename: "bag.jpg",
 			MIMEType:         "image/jpeg",
@@ -102,6 +107,7 @@ func TestCreateTripArchivesMediaWhenConfigured(t *testing.T) {
 
 	trip, err := service.CreateTrip(context.Background(), CreateTripInput{
 		TripName: "Goa",
+		UserID:   "google-user",
 		Media: media.UploadMetadata{
 			OriginalFilename: "bag.jpg",
 			MIMEType:         "image/jpeg",
@@ -118,6 +124,37 @@ func TestCreateTripArchivesMediaWhenConfigured(t *testing.T) {
 	}
 	if trip.Media.StorageDriver != "s3" {
 		t.Fatalf("CreateTrip() media storage_driver = %q", trip.Media.StorageDriver)
+	}
+}
+
+func TestCreateTripRoundsSharedLocation(t *testing.T) {
+	t.Parallel()
+
+	service := NewService(&stubRepository{}, nil, stubExtractor{
+		items: []TripItem{{Name: "Passport", Category: CategoryDocuments, Quantity: 1, AddedBy: AddedByAI}},
+	}, false)
+
+	trip, err := service.CreateTrip(context.Background(), CreateTripInput{
+		TripName: "Goa",
+		UserID:   "google-user",
+		Location: &TripLocation{
+			Latitude:       12.9715987,
+			Longitude:      77.594566,
+			AccuracyMeters: 18.987,
+		},
+	})
+	if err != nil {
+		t.Fatalf("CreateTrip() error = %v", err)
+	}
+
+	if trip.Location == nil {
+		t.Fatal("CreateTrip() expected rounded location")
+	}
+	if trip.Location.Latitude != 12.972 {
+		t.Fatalf("CreateTrip() latitude = %v", trip.Location.Latitude)
+	}
+	if trip.Location.Longitude != 77.595 {
+		t.Fatalf("CreateTrip() longitude = %v", trip.Location.Longitude)
 	}
 }
 

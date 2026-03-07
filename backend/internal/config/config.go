@@ -10,27 +10,28 @@ import (
 )
 
 type Config struct {
-	APIPort            string
-	AllowedOrigins     []string
-	MongoURI           string
-	MongoDatabase      string
-	MediaRetentionMode string
-	MediaStorageDriver string
-	LocalMediaDir      string
-	GoogleAPIKey       string
-	GeminiModel        string
-	CreateTripTimeout  time.Duration
-	ReadTripTimeout    time.Duration
-	UpdateTripTimeout  time.Duration
-	CreateRateLimit    int
-	ReadRateLimit      int
-	UpdateRateLimit    int
-	AWSRegion          string
-	S3Bucket           string
-	S3Prefix           string
-	S3Endpoint         string
-	S3ForcePathStyle   bool
-	S3StorageClass     string
+	APIPort              string
+	AllowedOrigins       []string
+	MongoURI             string
+	MongoDatabase        string
+	MediaRetentionMode   string
+	MediaStorageDriver   string
+	LocalMediaDir        string
+	GoogleAPIKey         string
+	GeminiModel          string
+	CreateTripTimeout    time.Duration
+	ReadTripTimeout      time.Duration
+	UpdateTripTimeout    time.Duration
+	CreateRateLimit      int
+	ReadRateLimit        int
+	UpdateRateLimit      int
+	InternalAPIAuthToken string
+	AWSRegion            string
+	S3Bucket             string
+	S3Prefix             string
+	S3Endpoint           string
+	S3ForcePathStyle     bool
+	S3StorageClass       string
 }
 
 func Load() (Config, error) {
@@ -77,27 +78,28 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
-		APIPort:            valueOrDefault("API_PORT", "8080"),
-		AllowedOrigins:     splitCSV(valueOrDefault("ALLOWED_ORIGINS", "http://localhost:3000")),
-		MongoURI:           valueOrDefault("MONGODB_URI", "mongodb://localhost:27017"),
-		MongoDatabase:      valueOrDefault("MONGODB_DATABASE", "packai"),
-		MediaRetentionMode: mediaRetentionMode,
-		MediaStorageDriver: valueOrDefault("MEDIA_STORAGE_DRIVER", "local"),
-		LocalMediaDir:      valueOrDefault("LOCAL_MEDIA_DIR", "./tmp/media"),
-		GoogleAPIKey:       strings.TrimSpace(os.Getenv("GOOGLE_API_KEY")),
-		GeminiModel:        valueOrDefault("GEMINI_MODEL", "gemini-2.5-flash"),
-		CreateTripTimeout:  createTripTimeout,
-		ReadTripTimeout:    readTripTimeout,
-		UpdateTripTimeout:  updateTripTimeout,
-		CreateRateLimit:    createRateLimit,
-		ReadRateLimit:      readRateLimit,
-		UpdateRateLimit:    updateRateLimit,
-		AWSRegion:          strings.TrimSpace(os.Getenv("AWS_REGION")),
-		S3Bucket:           strings.TrimSpace(os.Getenv("S3_BUCKET")),
-		S3Prefix:           valueOrDefault("S3_PREFIX", "packai/uploads"),
-		S3Endpoint:         strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
-		S3ForcePathStyle:   forcePathStyle,
-		S3StorageClass:     strings.TrimSpace(os.Getenv("S3_STORAGE_CLASS")),
+		APIPort:              valueOrDefault("API_PORT", "8080"),
+		AllowedOrigins:       splitCSV(valueOrDefault("ALLOWED_ORIGINS", "http://localhost:3000")),
+		MongoURI:             valueOrDefault("MONGODB_URI", "mongodb://localhost:27017"),
+		MongoDatabase:        valueOrDefault("MONGODB_DATABASE", "packai"),
+		MediaRetentionMode:   mediaRetentionMode,
+		MediaStorageDriver:   valueOrDefault("MEDIA_STORAGE_DRIVER", "local"),
+		LocalMediaDir:        valueOrDefault("LOCAL_MEDIA_DIR", "./tmp/media"),
+		GoogleAPIKey:         strings.TrimSpace(os.Getenv("GOOGLE_API_KEY")),
+		GeminiModel:          valueOrDefault("GEMINI_MODEL", "gemini-2.5-flash"),
+		CreateTripTimeout:    createTripTimeout,
+		ReadTripTimeout:      readTripTimeout,
+		UpdateTripTimeout:    updateTripTimeout,
+		CreateRateLimit:      createRateLimit,
+		ReadRateLimit:        readRateLimit,
+		UpdateRateLimit:      updateRateLimit,
+		InternalAPIAuthToken: strings.TrimSpace(os.Getenv("INTERNAL_API_TOKEN")),
+		AWSRegion:            strings.TrimSpace(os.Getenv("AWS_REGION")),
+		S3Bucket:             strings.TrimSpace(os.Getenv("S3_BUCKET")),
+		S3Prefix:             valueOrDefault("S3_PREFIX", "packai/uploads"),
+		S3Endpoint:           strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
+		S3ForcePathStyle:     forcePathStyle,
+		S3StorageClass:       strings.TrimSpace(os.Getenv("S3_STORAGE_CLASS")),
 	}
 
 	if cfg.APIPort == "" {

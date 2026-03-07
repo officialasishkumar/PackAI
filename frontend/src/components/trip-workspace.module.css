@@ -111,6 +111,12 @@
   line-height: 1.6;
 }
 
+.locationMeta {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .status {
   text-transform: capitalize;
   font-weight: 700;

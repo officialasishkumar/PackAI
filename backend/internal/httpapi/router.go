@@ -21,6 +21,7 @@ func NewRouter(cfg config.Config, tripHandler *TripHandler) http.Handler {
 			"time":   time.Now().UTC().Format(time.RFC3339),
 		})
 	})
+	mux.Handle("GET /api/v1/trips", readLimiter.Middleware(http.HandlerFunc(tripHandler.ListTrips)))
 	mux.Handle("POST /api/v1/trips", createLimiter.Middleware(http.HandlerFunc(tripHandler.CreateTrip)))
 	mux.Handle("GET /api/v1/trips/{id}", readLimiter.Middleware(http.HandlerFunc(tripHandler.GetTrip)))
 	mux.Handle("PUT /api/v1/trips/{id}/items", updateLimiter.Middleware(http.HandlerFunc(tripHandler.UpdateTripItems)))
@@ -30,6 +31,9 @@ func NewRouter(cfg config.Config, tripHandler *TripHandler) http.Handler {
 		withRecovery,
 		withRequestID,
 		withSecurityHeaders,
+		func(next http.Handler) http.Handler {
+			return withInternalAPIAuth(cfg.InternalAPIAuthToken, next)
+		},
 		func(next http.Handler) http.Handler {
 			return withCORS(cfg.AllowedOrigins, next)
 		},

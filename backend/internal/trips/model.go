@@ -46,7 +46,19 @@ type Trip struct {
 	UpdatedAt time.Time     `json:"updated_at" bson:"updated_at"`
 	Status    Status        `json:"status" bson:"status"`
 	Items     []TripItem    `json:"items" bson:"items"`
+	Location  *TripLocation `json:"location,omitempty" bson:"location,omitempty"`
 	Media     *StoredMedia  `json:"media,omitempty" bson:"media,omitempty"`
+}
+
+type TripSummary struct {
+	ID         bson.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	TripName   string        `json:"trip_name" bson:"trip_name"`
+	CreatedAt  time.Time     `json:"created_at" bson:"created_at"`
+	UpdatedAt  time.Time     `json:"updated_at" bson:"updated_at"`
+	Status     Status        `json:"status" bson:"status"`
+	ItemCount  int           `json:"item_count"`
+	TotalUnits int           `json:"total_units"`
+	Location   *TripLocation `json:"location,omitempty" bson:"location,omitempty"`
 }
 
 type TripItem struct {
@@ -56,6 +68,13 @@ type TripItem struct {
 	Quantity          int      `json:"quantity" bson:"quantity"`
 	IsPackedForReturn bool     `json:"is_packed_for_return" bson:"is_packed_for_return"`
 	AddedBy           AddedBy  `json:"added_by" bson:"added_by"`
+}
+
+type TripLocation struct {
+	Latitude       float64   `json:"latitude" bson:"latitude"`
+	Longitude      float64   `json:"longitude" bson:"longitude"`
+	AccuracyMeters float64   `json:"accuracy_meters,omitempty" bson:"accuracy_meters,omitempty"`
+	CapturedAt     time.Time `json:"captured_at,omitempty" bson:"captured_at,omitempty"`
 }
 
 type StoredMedia struct {
@@ -194,4 +213,28 @@ func containsAny(value string, parts ...string) bool {
 	}
 
 	return false
+}
+
+func SummarizeTrip(trip Trip) TripSummary {
+	itemCount, totalUnits := CountItems(trip.Items)
+
+	return TripSummary{
+		ID:         trip.ID,
+		TripName:   trip.TripName,
+		CreatedAt:  trip.CreatedAt,
+		UpdatedAt:  trip.UpdatedAt,
+		Status:     trip.Status,
+		ItemCount:  itemCount,
+		TotalUnits: totalUnits,
+		Location:   trip.Location,
+	}
+}
+
+func CountItems(items []TripItem) (itemCount int, totalUnits int) {
+	itemCount = len(items)
+	for _, item := range items {
+		totalUnits += item.Quantity
+	}
+
+	return itemCount, totalUnits
 }

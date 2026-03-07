@@ -9,7 +9,9 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
+import { AuthRequiredCard } from "@/components/auth-required-card";
 import { getErrorMessage, getTrip, updateTripItems } from "@/lib/api";
 import { cacheTrip, getCachedTrip } from "@/lib/offline-cache";
 import {
@@ -22,6 +24,7 @@ import {
   countTotalUnits,
   deriveTripStatus,
   deriveWorkspaceMode,
+  formatTripLocation,
 } from "@/lib/types";
 
 import styles from "./trip-workspace.module.css";
@@ -32,6 +35,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 export function TripWorkspace({ tripId }: { tripId: string }) {
+  const { data: session, status: sessionStatus } = useSession();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<TripItem[]>([]);
   const [mode, setMode] = useState<WorkspaceMode>("packing");
@@ -53,8 +57,13 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
   );
 
   useEffect(() => {
+    if (sessionStatus !== "authenticated") {
+      setIsLoading(false);
+      return;
+    }
+
     let cancelled = false;
-    const cachedTrip = getCachedTrip(tripId);
+    const cachedTrip = getCachedTrip(tripId, session?.user?.id ?? "");
 
     if (cachedTrip) {
       hydrateWorkspace(cachedTrip, setTrip, setItems, setMode);
@@ -95,7 +104,7 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [tripId]);
+  }, [session?.user?.id, sessionStatus, tripId]);
 
   async function handleSave(): Promise<void> {
     if (!trip) {
@@ -200,6 +209,28 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
     );
   }
 
+  if (sessionStatus === "loading") {
+    return (
+      <main className={styles.page}>
+        <section className={styles.loading}>
+          <p className={styles.kicker}>Loading session</p>
+          <h1>Checking your signed-in access…</h1>
+        </section>
+      </main>
+    );
+  }
+
+  if (sessionStatus !== "authenticated") {
+    return (
+      <main className={styles.page}>
+        <AuthRequiredCard
+          title="Sign in to open this trip."
+          copy="Trip access is now tied to your Google account, so the checklist and dashboard stay under the same owner."
+        />
+      </main>
+    );
+  }
+
   if (!trip) {
     return (
       <main className={styles.page}>
@@ -236,6 +267,11 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
             Created {DATE_FORMATTER.format(new Date(trip.created_at))} · Status{" "}
             <span className={styles.status}>{currentStatus.replace("_", " ")}</span>
           </p>
+          {trip.location ? (
+            <p className={styles.locationMeta}>
+              Shared location · {formatTripLocation(trip.location)}
+            </p>
+          ) : null}
         </div>
 
         <div className={styles.headerActions}>

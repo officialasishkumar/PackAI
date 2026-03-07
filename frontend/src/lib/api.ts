@@ -1,8 +1,8 @@
-import { Trip, TripItem, TripStatus } from "@/lib/types";
+import { Trip, TripItem, TripStatus, TripSummary } from "@/lib/types";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
-  "http://localhost:8080";
+  "";
 
 export class APIError extends Error {
   readonly status: number;
@@ -24,23 +24,50 @@ interface UpdateItemsPayload {
 export async function createTrip(input: {
   tripName: string;
   media: File;
-  userId?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    accuracyMeters?: number;
+    capturedAt?: string;
+  };
 }): Promise<Trip> {
   const formData = new FormData();
   formData.set("trip_name", input.tripName);
   formData.set("media", input.media);
-  if (input.userId) {
-    formData.set("user_id", input.userId);
+  if (input.location) {
+    formData.set("location_latitude", String(input.location.latitude));
+    formData.set("location_longitude", String(input.location.longitude));
+    if (typeof input.location.accuracyMeters === "number") {
+      formData.set(
+        "location_accuracy_meters",
+        String(input.location.accuracyMeters),
+      );
+    }
+    if (input.location.capturedAt) {
+      formData.set("location_captured_at", input.location.capturedAt);
+    }
   }
 
-  return apiRequest<Trip>("/api/v1/trips", {
+  return apiRequest<Trip>("/api/trips", {
     method: "POST",
     body: formData,
   });
 }
 
+export async function listTripSummaries(limit = 40): Promise<TripSummary[]> {
+  const payload = await apiRequest<{ trips: TripSummary[] }>(
+    `/api/trips?limit=${encodeURIComponent(String(limit))}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    },
+  );
+
+  return payload.trips;
+}
+
 export async function getTrip(id: string): Promise<Trip> {
-  return apiRequest<Trip>(`/api/v1/trips/${id}`, {
+  return apiRequest<Trip>(`/api/trips/${id}`, {
     method: "GET",
     cache: "no-store",
   });
@@ -50,7 +77,7 @@ export async function updateTripItems(
   id: string,
   payload: UpdateItemsPayload,
 ): Promise<Trip> {
-  return apiRequest<Trip>(`/api/v1/trips/${id}/items`, {
+  return apiRequest<Trip>(`/api/trips/${id}/items`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

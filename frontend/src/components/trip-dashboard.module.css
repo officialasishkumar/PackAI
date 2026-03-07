@@ -1,0 +1,160 @@
+.page {
+  width: min(100%, 86rem);
+  margin: 0 auto;
+  min-height: calc(100vh - 8rem);
+  padding:
+    1rem
+    1.25rem
+    max(2rem, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 1rem;
+}
+
+.hero,
+.dayGroup,
+.loadingCard,
+.emptyCard {
+  border: 1px solid var(--border);
+  border-radius: 1.8rem;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow);
+}
+
+.hero,
+.loadingCard,
+.emptyCard {
+  padding: 1.25rem;
+}
+
+.hero {
+  display: grid;
+  gap: 1rem;
+}
+
+.kicker {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.hero h1,
+.loadingCard h1,
+.loadingCard h2,
+.emptyCard h2 {
+  font-size: clamp(2.2rem, 8vw, 4.3rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.copy,
+.emptyCard p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.heroStats {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.statCard {
+  padding: 1rem;
+  border-radius: 1.35rem;
+  background: rgba(16, 34, 49, 0.06);
+}
+
+.statCard span {
+  display: block;
+  color: var(--muted);
+}
+
+.statCard strong {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.8rem;
+}
+
+.error {
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  background: rgba(150, 56, 28, 0.1);
+  color: #6d2412;
+  border: 1px solid rgba(150, 56, 28, 0.18);
+}
+
+.timeline {
+  display: grid;
+  gap: 1rem;
+}
+
+.dayGroup {
+  overflow: hidden;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(16, 34, 49, 0.08);
+}
+
+.dayHeader span {
+  color: var(--muted);
+}
+
+.tripList {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.tripCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: 1.4rem;
+  border: 1px solid rgba(16, 34, 49, 0.08);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 249, 244, 0.86)),
+    radial-gradient(circle at top right, rgba(206, 95, 62, 0.12), transparent 34%);
+}
+
+.tripMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.tripTime,
+.tripCounts,
+.tripLocation {
+  color: var(--muted);
+}
+
+.tripStatus {
+  display: inline-flex;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(16, 34, 49, 0.08);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@media (min-width: 980px) {
+  .page {
+    padding: 1.4rem 2rem 2rem;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 22rem);
+    align-items: start;
+  }
+}

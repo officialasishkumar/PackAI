@@ -1,0 +1,30 @@
+.card {
+  border: 1px solid var(--border);
+  border-radius: 2rem;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 241, 0.82)),
+    radial-gradient(circle at top right, rgba(17, 93, 78, 0.12), transparent 32%);
+  box-shadow: var(--shadow);
+  padding: 1.35rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.kicker {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.card h2 {
+  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.copy {
+  color: var(--muted);
+  line-height: 1.7;
+}

@@ -5,7 +5,12 @@ services:
       target: development
     command: npm run dev -- --hostname 0.0.0.0 --port 3000
     environment:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      API_BASE_URL: ${API_BASE_URL:-http://backend:8080}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-change-me}
     ports:
       - "3000:3000"
     volumes:
@@ -38,6 +43,7 @@ services:
       CREATE_RATE_LIMIT_PER_MINUTE: ${CREATE_RATE_LIMIT_PER_MINUTE:-12}
       READ_RATE_LIMIT_PER_MINUTE: ${READ_RATE_LIMIT_PER_MINUTE:-180}
       UPDATE_RATE_LIMIT_PER_MINUTE: ${UPDATE_RATE_LIMIT_PER_MINUTE:-60}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-change-me}
       AWS_REGION: ${AWS_REGION:-}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_PREFIX: ${S3_PREFIX:-packai/uploads}

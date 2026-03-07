@@ -22,6 +22,7 @@ func newValidationErrorf(format string, args ...any) *ValidationError {
 
 type Repository interface {
 	Create(ctx context.Context, trip *Trip) error
-	GetByID(ctx context.Context, id string) (*Trip, error)
-	UpdateItems(ctx context.Context, id string, items []TripItem, status Status) (*Trip, error)
+	ListByUser(ctx context.Context, userID string, limit int64) ([]TripSummary, error)
+	GetByID(ctx context.Context, id string, userID string) (*Trip, error)
+	UpdateItems(ctx context.Context, id string, userID string, items []TripItem, status Status) (*Trip, error)
 }

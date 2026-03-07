@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,9 +24,10 @@ const maxMultipartBodyBytes = media.MaxUploadBytes + (1 << 20)
 const maxItemsUpdateBodyBytes int64 = 1 << 20
 
 type TripService interface {
+	ListTrips(ctx context.Context, userID string, limit int64) ([]trips.TripSummary, error)
 	CreateTrip(ctx context.Context, input trips.CreateTripInput) (*trips.Trip, error)
-	GetTrip(ctx context.Context, id string) (*trips.Trip, error)
-	UpdateItems(ctx context.Context, id string, input trips.UpdateItemsInput) (*trips.Trip, error)
+	GetTrip(ctx context.Context, id string, userID string) (*trips.Trip, error)
+	UpdateItems(ctx context.Context, id string, userID string, input trips.UpdateItemsInput) (*trips.Trip, error)
 }
 
 type TripHandler struct {
@@ -44,7 +46,42 @@ func NewTripHandler(cfg config.Config, service TripService) *TripHandler {
 	}
 }
 
+func (h *TripHandler) ListTrips(w http.ResponseWriter, r *http.Request) {
+	userID, ok := requireUserID(w, r)
+	if !ok {
+		return
+	}
+
+	limit := int64(30)
+	if rawLimit := strings.TrimSpace(r.URL.Query().Get("limit")); rawLimit != "" {
+		parsed, err := strconv.ParseInt(rawLimit, 10, 64)
+		if err != nil || parsed <= 0 {
+			writeError(w, http.StatusBadRequest, "limit must be a positive integer")
+			return
+		}
+		limit = parsed
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), h.readTripTimeout)
+	defer cancel()
+
+	summaries, err := h.service.ListTrips(ctx, userID, limit)
+	if err != nil {
+		h.writeDomainError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"trips": summaries,
+	})
+}
+
 func (h *TripHandler) CreateTrip(w http.ResponseWriter, r *http.Request) {
+	userID, ok := requireUserID(w, r)
+	if !ok {
+		return
+	}
+
 	r.Body = http.MaxBytesReader(w, r.Body, maxMultipartBodyBytes)
 	if err := r.ParseMultipartForm(maxMultipartBodyBytes); err != nil {
 		h.writeParseError(w, err, "multipart request is invalid or too large")
@@ -75,14 +112,26 @@ func (h *TripHandler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	location, err := decodeTripLocation(
+		r.FormValue("location_latitude"),
+		r.FormValue("location_longitude"),
+		r.FormValue("location_accuracy_meters"),
+		r.FormValue("location_captured_at"),
+	)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(r.Context(), h.createTripTimeout)
 	defer cancel()
 
 	trip, err := h.service.CreateTrip(ctx, trips.CreateTripInput{
 		TripName:  r.FormValue("trip_name"),
-		UserID:    r.FormValue("user_id"),
+		UserID:    userID,
 		Media:     metadata,
 		MediaPath: tempPath,
+		Location:  location,
 	})
 	if err != nil {
 		h.writeDomainError(w, err)
@@ -93,10 +142,15 @@ func (h *TripHandler) CreateTrip(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TripHandler) GetTrip(w http.ResponseWriter, r *http.Request) {
+	userID, ok := requireUserID(w, r)
+	if !ok {
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(r.Context(), h.readTripTimeout)
 	defer cancel()
 
-	trip, err := h.service.GetTrip(ctx, r.PathValue("id"))
+	trip, err := h.service.GetTrip(ctx, r.PathValue("id"), userID)
 	if err != nil {
 		h.writeDomainError(w, err)
 		return
@@ -106,6 +160,11 @@ func (h *TripHandler) GetTrip(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TripHandler) UpdateTripItems(w http.ResponseWriter, r *http.Request) {
+	userID, ok := requireUserID(w, r)
+	if !ok {
+		return
+	}
+
 	defer r.Body.Close()
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxItemsUpdateBodyBytes)
@@ -124,7 +183,7 @@ func (h *TripHandler) UpdateTripItems(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.updateTripTimeout)
 	defer cancel()
 
-	trip, err := h.service.UpdateItems(ctx, r.PathValue("id"), input)
+	trip, err := h.service.UpdateItems(ctx, r.PathValue("id"), userID, input)
 	if err != nil {
 		h.writeDomainError(w, err)
 		return
@@ -196,4 +255,66 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{
 		"error": strings.TrimSpace(message),
 	})
+}
+
+func requireUserID(w http.ResponseWriter, r *http.Request) (string, bool) {
+	userID := strings.TrimSpace(r.Header.Get("X-User-ID"))
+	if userID == "" {
+		writeError(w, http.StatusUnauthorized, "authentication is required")
+		return "", false
+	}
+
+	return userID, true
+}
+
+func decodeTripLocation(latitudeRaw, longitudeRaw, accuracyRaw, capturedAtRaw string) (*trips.TripLocation, error) {
+	latitudeRaw = strings.TrimSpace(latitudeRaw)
+	longitudeRaw = strings.TrimSpace(longitudeRaw)
+	if latitudeRaw == "" && longitudeRaw == "" {
+		return nil, nil
+	}
+	if latitudeRaw == "" || longitudeRaw == "" {
+		return nil, fmt.Errorf("location must include both latitude and longitude")
+	}
+
+	latitude, err := strconv.ParseFloat(latitudeRaw, 64)
+	if err != nil {
+		return nil, fmt.Errorf("location latitude must be a valid number")
+	}
+	if latitude < -90 || latitude > 90 {
+		return nil, fmt.Errorf("location latitude must be between -90 and 90")
+	}
+	longitude, err := strconv.ParseFloat(longitudeRaw, 64)
+	if err != nil {
+		return nil, fmt.Errorf("location longitude must be a valid number")
+	}
+	if longitude < -180 || longitude > 180 {
+		return nil, fmt.Errorf("location longitude must be between -180 and 180")
+	}
+
+	accuracy := 0.0
+	if strings.TrimSpace(accuracyRaw) != "" {
+		accuracy, err = strconv.ParseFloat(strings.TrimSpace(accuracyRaw), 64)
+		if err != nil {
+			return nil, fmt.Errorf("location accuracy must be a valid number")
+		}
+		if accuracy < 0 {
+			return nil, fmt.Errorf("location accuracy must not be negative")
+		}
+	}
+
+	var capturedAt time.Time
+	if strings.TrimSpace(capturedAtRaw) != "" {
+		capturedAt, err = time.Parse(time.RFC3339, strings.TrimSpace(capturedAtRaw))
+		if err != nil {
+			return nil, fmt.Errorf("location captured_at must be an RFC3339 timestamp")
+		}
+	}
+
+	return &trips.TripLocation{
+		Latitude:       latitude,
+		Longitude:      longitude,
+		AccuracyMeters: accuracy,
+		CapturedAt:     capturedAt,
+	}, nil
 }

@@ -14,16 +14,19 @@ export function cacheTrip(trip: Trip): void {
     return;
   }
 
-  window.localStorage.setItem(cacheKey(trip._id), JSON.stringify(trip));
+  window.localStorage.setItem(cacheKey(trip.user_id, trip._id), JSON.stringify(trip));
   persistIndex(trip);
 }
 
-export function getCachedTrip(id: string): Trip | null {
+export function getCachedTrip(id: string, userId: string): Trip | null {
   if (typeof window === "undefined") {
     return null;
   }
+  if (!userId) {
+    return null;
+  }
 
-  const raw = window.localStorage.getItem(cacheKey(id));
+  const raw = window.localStorage.getItem(cacheKey(userId, id));
   if (!raw) {
     return null;
   }
@@ -35,27 +38,27 @@ export function getCachedTrip(id: string): Trip | null {
   }
 }
 
-function cacheKey(id: string): string {
-  return `${CACHE_PREFIX}${id}`;
+function cacheKey(userId: string, id: string): string {
+  return `${CACHE_PREFIX}${userId}.${id}`;
 }
 
 function persistIndex(trip: Trip): void {
   const nextUpdatedAt = trip.updated_at ?? trip.created_at ?? new Date().toISOString();
-  const nextIndex = readIndex()
+  const nextIndex = readIndex(trip.user_id)
     .filter((entry) => entry.id !== trip._id)
     .concat({ id: trip._id, updatedAt: nextUpdatedAt })
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
 
   const retained = nextIndex.slice(0, MAX_CACHED_TRIPS);
   for (const staleEntry of nextIndex.slice(MAX_CACHED_TRIPS)) {
-    window.localStorage.removeItem(cacheKey(staleEntry.id));
+    window.localStorage.removeItem(cacheKey(trip.user_id, staleEntry.id));
   }
 
-  window.localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(retained));
+  window.localStorage.setItem(indexKey(trip.user_id), JSON.stringify(retained));
 }
 
-function readIndex(): CacheIndexEntry[] {
-  const raw = window.localStorage.getItem(CACHE_INDEX_KEY);
+function readIndex(userId: string): CacheIndexEntry[] {
+  const raw = window.localStorage.getItem(indexKey(userId));
   if (!raw) {
     return [];
   }
@@ -69,4 +72,8 @@ function readIndex(): CacheIndexEntry[] {
   } catch {
     return [];
   }
+}
+
+function indexKey(userId: string): string {
+  return `${CACHE_INDEX_KEY}.${userId}`;
 }
