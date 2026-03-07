@@ -9,7 +9,7 @@ import (
 	"packsnap/backend/internal/config"
 )
 
-func NewRouter(cfg config.Config) http.Handler {
+func NewRouter(cfg config.Config, tripHandler *TripHandler) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{
@@ -17,6 +17,9 @@ func NewRouter(cfg config.Config) http.Handler {
 			"time":   time.Now().UTC().Format(time.RFC3339),
 		})
 	})
+	mux.HandleFunc("POST /api/v1/trips", tripHandler.CreateTrip)
+	mux.HandleFunc("GET /api/v1/trips/{id}", tripHandler.GetTrip)
+	mux.HandleFunc("PUT /api/v1/trips/{id}/items", tripHandler.UpdateTripItems)
 
 	return withCORS(cfg.AllowedOrigins, mux)
 }

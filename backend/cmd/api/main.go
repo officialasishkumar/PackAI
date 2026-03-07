@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"packsnap/backend/internal/app"
 	"packsnap/backend/internal/config"
-	"packsnap/backend/internal/httpapi"
 )
 
 func main() {
@@ -18,9 +18,14 @@ func main() {
 		log.Fatalf("load config: %v", err)
 	}
 
+	application, err := app.New(context.Background(), cfg)
+	if err != nil {
+		log.Fatalf("bootstrap app: %v", err)
+	}
+
 	server := &http.Server{
 		Addr:              cfg.ListenAddr(),
-		Handler:           httpapi.NewRouter(cfg),
+		Handler:           application.Handler,
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,
@@ -45,5 +50,9 @@ func main() {
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("shutdown error: %v", err)
+	}
+
+	if err := application.Close(shutdownCtx); err != nil {
+		log.Printf("application close error: %v", err)
 	}
 }

@@ -3,15 +3,21 @@
   --foreground: #102231;
   --accent: #ce5f3e;
   --accent-strong: #96381c;
+  --accent-soft: rgba(206, 95, 62, 0.12);
   --surface: rgba(255, 255, 255, 0.72);
   --surface-strong: rgba(255, 255, 255, 0.92);
   --border: rgba(16, 34, 49, 0.12);
+  --muted: rgba(16, 34, 49, 0.72);
   --shadow: 0 24px 60px rgba(16, 34, 49, 0.12);
 }
 
 html,
 body {
   min-height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -44,73 +50,68 @@ textarea {
   font: inherit;
 }
 
-.shell {
-  width: min(100%, 72rem);
-  margin: 0 auto;
-  min-height: 100vh;
-  padding: 3rem 1.25rem 4rem;
-  display: grid;
-  gap: 1.5rem;
-  align-content: center;
-}
-
-.hero,
-.panel {
-  border: 1px solid var(--border);
-  border-radius: 1.75rem;
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--shadow);
-}
-
-.hero {
-  padding: 2rem;
-  display: grid;
-  gap: 1rem;
-}
-
-.eyebrow,
-.panel-label {
+.monoLabel {
   font-family: var(--font-plex-mono), monospace;
   font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   color: var(--accent-strong);
 }
 
-.hero h1,
-.panel h2 {
-  line-height: 0.95;
-  letter-spacing: -0.04em;
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 1rem;
+  background: var(--accent);
+  color: white;
+  padding: 0.85rem 1.1rem;
+  font-weight: 600;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
 }
 
-.hero h1 {
-  font-size: clamp(3rem, 10vw, 6.75rem);
-  max-width: 12ch;
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(150, 56, 28, 0.22);
 }
 
-.lede,
-.panel-copy {
-  max-width: 48rem;
-  font-size: 1.05rem;
-  line-height: 1.65;
-  color: rgba(16, 34, 49, 0.76);
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
-.panel {
-  padding: 1.5rem 1.6rem;
-  display: grid;
-  gap: 0.75rem;
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid rgba(16, 34, 49, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--foreground);
+  padding: 0.9rem 1rem;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(206, 95, 62, 0.5);
+  box-shadow: 0 0 0 4px rgba(206, 95, 62, 0.12);
+}
+
+::selection {
+  background: rgba(206, 95, 62, 0.24);
 }
 
 @media (max-width: 640px) {
-  .shell {
-    padding-top: 1.25rem;
-    align-content: start;
-  }
-
-  .hero {
-    min-height: 68vh;
-    align-content: end;
+  html {
+    font-size: 15px;
   }
 }
