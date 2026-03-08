@@ -10,7 +10,6 @@ import {
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 
-import { SignInNudge } from "@/components/sign-in-nudge";
 import { createTrip, getErrorMessage } from "@/lib/api";
 import { cacheTrip } from "@/lib/offline-cache";
 import { prepareMedia } from "@/lib/media";
@@ -30,20 +29,7 @@ interface SharedLocation {
   capturedAt: string;
 }
 
-const TRUST_POINTS = [
-  {
-    title: "Device-first history",
-    copy: "Trips can be revisited from the dashboard without exposing the source image there, even before sign-in.",
-  },
-  {
-    title: "Location is optional",
-    copy: "You choose whether to attach approximate location so the dashboard can show where a list was created.",
-  },
-  {
-    title: "Deletion-first",
-    copy: "Raw uploads are still discarded after analysis by default, so storage stays predictable.",
-  },
-];
+
 
 export function TripCreateForm() {
   const router = useRouter();
@@ -185,42 +171,42 @@ export function TripCreateForm() {
 
   return (
     <div className={styles.stack}>
-      {status !== "authenticated" ? (
-        <SignInNudge
-          title="Create instantly, or sign in if you want sync."
-          copy="Guests can still generate lists, download checklist images, and see them on this device dashboard. Google sign-in simply keeps that history across devices."
-        />
-      ) : null}
-
       <form className={styles.card} onSubmit={handleSubmit}>
         <div className={styles.header}>
           <div className={styles.headerTop}>
             <p className={styles.kicker}>Create a trip</p>
             <span className={styles.privacyPill}>
-              {status === "authenticated" ? "Cloud-backed dashboard" : "Guest-friendly capture flow"}
+              {status === "authenticated" ? "Dashboard unlocked" : "Guest mode"}
             </span>
           </div>
-          <h2>Generate the list, then keep the context.</h2>
+          <h2>Create your checklist</h2>
           <p className={styles.copy}>
-            Every trip can land on your dashboard with its creation day and optional
-            location. The dashboard still leaves the source media out.
+            Name the trip, add one packed-bag photo, and fix anything the model
+            misses.
           </p>
-          {status !== "authenticated" ? (
+        </div>
+
+        {status !== "authenticated" ? (
+          <section className={styles.syncCard}>
+            <div className={styles.syncCopy}>
+              <strong>Dashboard sync is locked.</strong>
+              <p>Sign in if you want saved trips and cross-device history.</p>
+            </div>
             <button
               type="button"
-              className={styles.inlineSignIn}
-              onClick={() => signIn("google")}
+              className={styles.syncButton}
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
             >
-              Sign in if you want cross-device history
+              Unlock dashboard
             </button>
-          ) : null}
-        </div>
+          </section>
+        ) : null}
 
         <label className={styles.field}>
           <span>Trip name</span>
           <input
             name="trip_name"
-            placeholder="GSoC Summit 2026"
+            placeholder="Tokyo weekender"
             value={tripName}
             onChange={(event) => setTripName(event.target.value)}
             maxLength={80}
@@ -236,17 +222,17 @@ export function TripCreateForm() {
             onChange={handleMediaChange}
             disabled={isBusy}
           />
-          <span className={styles.uploaderLabel}>Choose luggage photo or video</span>
+          <span className={styles.uploaderLabel}>Add luggage photo or short video</span>
           <span className={styles.uploaderHint}>
-            JPEG, PNG, or MP4 up to 15 seconds. Images are compressed client-side.
+            JPEG, PNG, or MP4 up to 15 seconds.
           </span>
         </label>
 
         <section className={styles.locationCard}>
           <div className={styles.locationHeader}>
             <div>
-              <p className={styles.kicker}>Location sharing</p>
-              <strong>Add approximate location to the dashboard</strong>
+              <p className={styles.kicker}>Optional</p>
+              <strong>Add location context</strong>
             </div>
 
             <label className={styles.toggle}>
@@ -260,8 +246,7 @@ export function TripCreateForm() {
           </div>
 
           <p className={styles.locationCopy}>
-            Optional. If you enable this, the browser will ask whether you want to
-            share your current location for trip history only.
+            Useful if you want to remember where this checklist was created.
           </p>
 
           {wantsLocation ? (
@@ -302,9 +287,9 @@ export function TripCreateForm() {
             )
           ) : (
             <div className={styles.previewEmpty}>
-              <span className={styles.previewBadge}>Rear camera preferred</span>
-              <strong>Mobile capture ready</strong>
-              <p>Use the rear camera for a packed suitcase photo, or a short pan video.</p>
+              <span className={styles.previewBadge}>Preview</span>
+              <strong>Add one clear bag photo</strong>
+              <p>A simple top-down shot usually gives the best extraction.</p>
             </div>
           )}
         </div>
@@ -313,15 +298,6 @@ export function TripCreateForm() {
           {selectedMedia?.note ??
             "Tip: spread items so the model can clearly see distinct objects and counts."}
         </p>
-
-        <section className={styles.trustGrid} aria-label="Product guarantees">
-          {TRUST_POINTS.map((point) => (
-            <article key={point.title} className={styles.trustCard}>
-              <strong>{point.title}</strong>
-              <p>{point.copy}</p>
-            </article>
-          ))}
-        </section>
 
         {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -336,11 +312,6 @@ export function TripCreateForm() {
                   ? "Opening checklist..."
                   : "Create checklist"}
         </button>
-
-        <p className={styles.footnote}>
-          Guests can create, revisit, and export list images on this device.
-          Signing in just makes that history portable.
-        </p>
       </form>
     </div>
   );

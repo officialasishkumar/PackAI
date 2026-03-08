@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -13,16 +14,31 @@ export function SiteChrome({
 }>) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const [promptRoute, setPromptRoute] = useState<string | null>(null);
+  const currentRoute = pathname ?? "/";
 
   const signedIn = status === "authenticated";
+  const displayName =
+    session?.user?.name?.trim()?.split(/\s+/)[0] ??
+    session?.user?.email ??
+    "Account";
+  const showDashboardPrompt = !signedIn && promptRoute === currentRoute;
+
+  function handleSignIn(callbackUrl = currentRoute) {
+    void signIn("google", { callbackUrl });
+  }
+
+  const guestDashboardClassName = showDashboardPrompt
+    ? `${styles.navButton} ${styles.navPromptOpen}`
+    : styles.navButton;
 
   return (
     <>
       <header className={styles.shell}>
-        <div className={styles.brandRow}>
+        <div className={styles.bar}>
           <Link href="/" className={styles.brand}>
             <span className={styles.mark}>PackAI</span>
-            <small>smart trip memory</small>
+            <small>snap bag. get checklist.</small>
           </Link>
 
           <nav className={styles.nav}>
@@ -32,42 +48,92 @@ export function SiteChrome({
             >
               Create
             </Link>
-            <Link
-              href="/dashboard"
-              className={
-                pathname?.startsWith("/dashboard")
-                  ? styles.navActive
-                  : styles.navLink
-              }
-            >
-              Dashboard
-            </Link>
+            {signedIn ? (
+              <Link
+                href="/dashboard"
+                className={
+                  pathname?.startsWith("/dashboard")
+                    ? styles.navActive
+                    : styles.navLink
+                }
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={guestDashboardClassName}
+                aria-expanded={showDashboardPrompt}
+                aria-controls="dashboard-sign-in-prompt"
+                onClick={() =>
+                  setPromptRoute((current) =>
+                    current === currentRoute ? null : currentRoute,
+                  )
+                }
+              >
+                Dashboard
+              </button>
+            )}
           </nav>
-        </div>
 
-        <div className={styles.authRow}>
           {signedIn && session.user ? (
-            <div className={styles.userMeta}>
-              <strong>{session.user.name ?? "Google account"}</strong>
-              <span>{session.user.email}</span>
-            </div>
-          ) : (
-            <div className={styles.userMeta}>
-              <strong>Guest mode on this device</strong>
-              <span>sign in only if you want cross-device history</span>
-            </div>
-          )}
+            <div className={styles.account}>
+              <div className={styles.userMeta}>
+                <strong>{displayName}</strong>
+                <span>{session.user.email}</span>
+              </div>
 
-          {signedIn ? (
-            <button type="button" onClick={() => signOut({ callbackUrl: "/" })}>
-              Sign out
-            </button>
+              <button
+                type="button"
+                className={styles.secondaryAction}
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Sign out
+              </button>
+            </div>
           ) : (
-            <button type="button" onClick={() => signIn("google")}>
-              Continue with Google
-            </button>
+            <div className={styles.account}>
+              <p className={styles.accountHint}>Sign in to unlock the dashboard.</p>
+              <button
+                type="button"
+                className={styles.signInAction}
+                onClick={() => handleSignIn()}
+              >
+                Sign in
+              </button>
+            </div>
           )}
         </div>
+
+        {!signedIn && showDashboardPrompt ? (
+          <section
+            id="dashboard-sign-in-prompt"
+            className={styles.dashboardPrompt}
+            aria-live="polite"
+          >
+            <div className={styles.promptCopy}>
+              <p className={styles.promptLabel}>Dashboard locked</p>
+              <strong>Sign in to open saved trips.</strong>
+              <p>
+                Guests can still create one-off checklists, but dashboard history
+                stays behind Google sign-in.
+              </p>
+            </div>
+
+            <div className={styles.promptActions}>
+              <button type="button" onClick={() => handleSignIn("/dashboard")}>
+                Continue with Google
+              </button>
+              <button
+                type="button"
+                className={styles.ghostAction}
+                onClick={() => setPromptRoute(null)}
+              >
+                Not now
+              </button>
+            </div>
+          </section>
+        ) : null}
       </header>
 
       {children}

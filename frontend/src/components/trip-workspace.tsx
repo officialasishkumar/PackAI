@@ -229,8 +229,10 @@ export function TripWorkspace({ tripId }: { tripId: string }) {
   return (
     <main className={styles.page}>
       <SignInNudge
-        title="Keep this checklist across devices if you want."
-        copy="Guests can still edit, export, and revisit this trip from the same device dashboard. Google sign-in simply turns it into portable history."
+        title="Unlock the dashboard for future trips."
+        copy="You can keep working on this checklist here. Sign in if you want future trips saved to your account dashboard."
+        buttonLabel="Unlock dashboard"
+        callbackUrl="/dashboard"
       />
 
       <header className={styles.header}>

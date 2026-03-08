@@ -1,0 +1,61 @@
+.page {
+  width: min(100%, 86rem);
+  margin: 0 auto;
+  min-height: calc(100vh - 8rem);
+  padding:
+    1rem
+    1.25rem
+    max(2rem, env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+}
+
+.card {
+  width: min(100%, 34rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 2rem;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(247, 240, 231, 0.84)),
+    radial-gradient(circle at top right, rgba(216, 122, 82, 0.12), transparent 34%);
+  box-shadow: var(--shadow);
+}
+
+.kicker {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.card h1 {
+  font-size: clamp(2.2rem, 8vw, 3.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.copy {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1rem;
+  background: rgba(21, 49, 59, 0.08);
+  color: var(--foreground);
+  font-weight: 600;
+}

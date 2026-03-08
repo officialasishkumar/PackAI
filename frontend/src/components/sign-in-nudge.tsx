@@ -7,9 +7,13 @@ import styles from "./sign-in-nudge.module.css";
 export function SignInNudge({
   title,
   copy,
+  buttonLabel = "Continue with Google",
+  callbackUrl,
 }: Readonly<{
   title: string;
   copy: string;
+  buttonLabel?: string;
+  callbackUrl?: string;
 }>) {
   const { status } = useSession();
 
@@ -25,8 +29,11 @@ export function SignInNudge({
         <p className={styles.copy}>{copy}</p>
       </div>
 
-      <button type="button" onClick={() => signIn("google")}>
-        Sign in with Google
+      <button
+        type="button"
+        onClick={() => signIn("google", callbackUrl ? { callbackUrl } : undefined)}
+      >
+        {buttonLabel}
       </button>
     </section>
   );

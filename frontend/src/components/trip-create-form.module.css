@@ -7,12 +7,12 @@
   border: 1px solid var(--border);
   border-radius: 2rem;
   background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 250, 244, 0.86)),
-    linear-gradient(140deg, rgba(206, 95, 62, 0.08), transparent 36%);
+    linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(246, 238, 227, 0.82)),
+    radial-gradient(circle at top right, rgba(31, 114, 109, 0.12), transparent 34%);
   box-shadow: var(--shadow);
-  padding: 1.35rem;
+  padding: 2rem;
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .header {
@@ -43,8 +43,8 @@
   width: fit-content;
   padding: 0.45rem 0.7rem;
   border-radius: 999px;
-  background: rgba(17, 93, 78, 0.12);
-  color: #115d4e;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   font-family: var(--font-plex-mono), monospace;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -59,20 +59,30 @@
 
 .copy {
   color: var(--muted);
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
-.inlineSignIn {
-  width: fit-content;
-  padding-inline: 0;
-  background: transparent;
-  color: var(--foreground);
-  box-shadow: none;
+.syncCard {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(21, 49, 59, 0.08);
+  background: rgba(255, 255, 255, 0.68);
 }
 
-.inlineSignIn:hover:not(:disabled) {
-  transform: none;
-  box-shadow: none;
+.syncCopy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.syncCopy p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.syncButton {
+  justify-self: start;
 }
 
 .field {
@@ -95,18 +105,17 @@
   position: relative;
   display: grid;
   gap: 0.35rem;
-  padding: 1.15rem;
+  padding: 1.5rem;
   border-radius: 1.5rem;
-  border: 1px dashed rgba(16, 34, 49, 0.2);
-  background:
-    linear-gradient(145deg, rgba(16, 34, 49, 0.06), rgba(16, 34, 49, 0.02)),
-    repeating-linear-gradient(
-      135deg,
-      rgba(16, 34, 49, 0.04),
-      rgba(16, 34, 49, 0.04) 12px,
-      transparent 12px,
-      transparent 24px
-    );
+  border: 1px dashed rgba(21, 49, 59, 0.2);
+  background: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.uploader:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--accent);
 }
 
 .uploader input {
@@ -129,9 +138,9 @@
 .locationCard {
   display: grid;
   gap: 0.8rem;
-  padding: 1rem;
+  padding: 1.25rem;
   border-radius: 1.4rem;
-  border: 1px solid rgba(16, 34, 49, 0.08);
+  border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.68);
 }
 
@@ -174,24 +183,23 @@
 }
 
 .secondaryButton {
-  background: rgba(16, 34, 49, 0.92);
+  background: rgba(21, 49, 59, 0.08);
+  color: var(--foreground);
+  box-shadow: none;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: rgba(21, 49, 59, 0.12);
+  transform: none;
+  box-shadow: none;
 }
 
 .preview {
   min-height: 17rem;
   overflow: hidden;
   border-radius: 1.5rem;
-  background:
-    radial-gradient(circle at top right, rgba(206, 95, 62, 0.18), transparent 34%),
-    linear-gradient(160deg, rgba(16, 34, 49, 0.08), rgba(16, 34, 49, 0.02)),
-    repeating-linear-gradient(
-      135deg,
-      rgba(16, 34, 49, 0.04),
-      rgba(16, 34, 49, 0.04) 12px,
-      transparent 12px,
-      transparent 24px
-    );
-  border: 1px solid rgba(16, 34, 49, 0.08);
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid var(--border);
 }
 
 .previewMedia {
@@ -228,10 +236,10 @@
 }
 
 .trustCard {
-  padding: 0.95rem 1rem;
+  padding: 1rem 1.25rem;
   border-radius: 1.2rem;
-  border: 1px solid rgba(16, 34, 49, 0.08);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .trustCard strong {
@@ -260,5 +268,10 @@
   .card {
     position: sticky;
     top: 2rem;
+  }
+
+  .syncCard {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
   }
 }

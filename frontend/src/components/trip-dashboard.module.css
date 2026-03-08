@@ -29,6 +29,14 @@
 .hero {
   display: grid;
   gap: 1rem;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(247, 240, 231, 0.82)),
+    radial-gradient(circle at top right, rgba(31, 114, 109, 0.12), transparent 34%);
+}
+
+.heroHeader {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .kicker {
@@ -53,10 +61,25 @@
   line-height: 1.7;
 }
 
-.heroStats {
+.heroActions {
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.createLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1rem;
+  background: rgba(21, 49, 59, 0.92);
+  color: white;
+  font-weight: 600;
+}
+
+.heroActions .statCard {
+  min-height: 100%;
 }
 
 .statCard {
@@ -206,8 +229,16 @@
   }
 
   .hero {
-    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 22rem);
+    grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 21rem);
     align-items: start;
+  }
+
+  .heroActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .createLink {
+    grid-column: 1 / -1;
   }
 
   .tripList {

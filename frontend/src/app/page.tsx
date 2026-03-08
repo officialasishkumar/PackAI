@@ -2,27 +2,22 @@ import { TripCreateForm } from "@/components/trip-create-form";
 
 import styles from "./home.module.css";
 
-const PROMISES = [
+const STEPS = [
   {
-    label: "Storage discipline",
-    value: "Uploads are disposable by default, so the checklist survives, not the raw bag photo.",
+    step: "01",
+    title: "Name the trip",
+    copy: "Use a label you will recognize later.",
   },
   {
-    label: "Scale posture",
-    value: "Go request limits, Mongo indexes, and bounded payloads keep the API from drifting into demo-only patterns.",
+    step: "02",
+    title: "Add one clear bag photo",
+    copy: "A single top-down shot is usually enough.",
   },
   {
-    label: "Travel UX",
-    value: "Offline caching, checklist-image export, and a day-by-day dashboard keep the useful part available in bad airport Wi-Fi.",
+    step: "03",
+    title: "Fix the checklist",
+    copy: "Adjust quantities and missing items in seconds.",
   },
-];
-
-const SIGNALS = [
-  "Guest mode or Google sign-in",
-  "AI extraction locked to JSON",
-  "Short-form image/video capture",
-  "Optional location sharing for dashboard context",
-  "Checklist image download from trip or dashboard",
 ];
 
 export default function Home() {
@@ -31,74 +26,30 @@ export default function Home() {
       <section className={styles.story}>
         <div className={styles.orb} />
         <div className={styles.badgeRow}>
-          <span className={styles.badge}>Next.js PWA</span>
-          <span className={styles.badge}>Go + MongoDB</span>
-          <span className={styles.badge}>Gemini-powered extraction</span>
-          <span className={styles.badge}>Deletion-first uploads</span>
+          <span className={styles.badge}>Smart Extraction</span>
+          <span className={styles.badge}>Offline Ready</span>
+          <span className={styles.badge}>Privacy First</span>
         </div>
 
         <div className={styles.headline}>
           <p className="monoLabel">PackAI</p>
-          <h1>Turn a suitcase snapshot into a return-trip ritual.</h1>
+          <h1>Snap the bag. Check the list.</h1>
           <p>
-            Capture a packed bag once, let Gemini pull out visible items, then
-            travel with a categorized checklist that still opens when your
-            connection drops and does not force you to retain raw luggage media forever.
+            Turn one luggage photo into a checklist you can review before you
+            leave and again before you fly home.
           </p>
         </div>
 
-        <div className={styles.signalBoard}>
-          {SIGNALS.map((signal) => (
-            <span key={signal} className={styles.signalChip}>
-              {signal}
-            </span>
-          ))}
-        </div>
-
-        <div className={styles.stats}>
-          <article className={styles.stat}>
-            <span>Input</span>
-            <strong>JPEG, PNG, or MP4 under 15 seconds</strong>
-          </article>
-          <article className={styles.stat}>
-            <span>AI output</span>
-            <strong>Structured item JSON mapped to packing categories</strong>
-          </article>
-          <article className={styles.stat}>
-            <span>State</span>
-            <strong>Edit in packing mode, check off in repacking mode</strong>
-          </article>
-          <article className={styles.stat}>
-            <span>Offline</span>
-            <strong>Previously opened trips remain visible from local cache</strong>
-          </article>
-        </div>
-
-        <div className={styles.promiseGrid}>
-          {PROMISES.map((promise) => (
-            <article key={promise.label} className={styles.promiseCard}>
-              <span>{promise.label}</span>
-              <strong>{promise.value}</strong>
+        <div className={styles.steps} aria-label="How it works">
+          {STEPS.map((item) => (
+            <article key={item.step} className={styles.step}>
+              <span className={styles.stepNumber}>{item.step}</span>
+              <div className={styles.stepCopy}>
+                <strong>{item.title}</strong>
+                <p>{item.copy}</p>
+              </div>
             </article>
           ))}
-        </div>
-
-        <div className={styles.steps}>
-          <article className={styles.step}>
-            <span>01</span>
-            <strong>Shoot the suitcase</strong>
-            <p>Use the rear camera or upload a short pan of the packed luggage.</p>
-          </article>
-          <article className={styles.step}>
-            <span>02</span>
-            <strong>Review the extraction</strong>
-            <p>Add the hidden items AI missed, rename things, and tune quantities.</p>
-          </article>
-          <article className={styles.step}>
-            <span>03</span>
-            <strong>Repack with less anxiety</strong>
-            <p>Flip into return mode and check items off before leaving the hotel.</p>
-          </article>
         </div>
       </section>
 

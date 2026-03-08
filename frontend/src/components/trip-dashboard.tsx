@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
 import { DownloadChecklistButton } from "@/components/download-checklist-button";
-import { SignInNudge } from "@/components/sign-in-nudge";
 import { getErrorMessage, listTripSummaries } from "@/lib/api";
 import { TripSummary, formatTripLocation } from "@/lib/types";
 
@@ -23,16 +21,11 @@ const TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 export function TripDashboard() {
-  const { status } = useSession();
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "loading") {
-      return;
-    }
-
     let cancelled = false;
 
     async function loadTrips() {
@@ -59,29 +52,25 @@ export function TripDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [status]);
+  }, []);
 
   const groupedTrips = groupTripsByDay(trips);
 
   return (
     <main className={styles.page}>
-      <SignInNudge
-        title="Guest dashboard works now. Sign in if you want it everywhere."
-        copy="You can keep using PackAI without an account, download checklist images, and revisit lists on this device. Google sign-in only adds cross-device continuity."
-      />
-
       <section className={styles.hero}>
-        <div>
+        <div className={styles.heroHeader}>
           <p className={styles.kicker}>Dashboard</p>
-          <h1>A checklist archive, organized by day and place.</h1>
+          <h1>Saved checklists.</h1>
           <p className={styles.copy}>
-            This view stays image-free. It keeps the useful context: when the
-            list was generated, where you chose to share location, and a quick
-            checklist preview you can reopen or save as an image.
+            Open a trip, scan the essentials, or export the checklist as an image.
           </p>
         </div>
 
-        <div className={styles.heroStats}>
+        <div className={styles.heroActions}>
+          <Link href="/" className={styles.createLink}>
+            New trip
+          </Link>
           <article className={styles.statCard}>
             <span>Total trips</span>
             <strong>{trips.length}</strong>
@@ -98,13 +87,13 @@ export function TripDashboard() {
       {isLoading ? (
         <section className={styles.loadingCard}>
           <p className={styles.kicker}>Refreshing</p>
-          <h2>Pulling your latest checklists…</h2>
+          <h2>Loading your checklists…</h2>
         </section>
       ) : groupedTrips.length === 0 ? (
         <section className={styles.emptyCard}>
-          <p className={styles.kicker}>No trips yet</p>
+          <p className={styles.kicker}>Nothing here yet</p>
           <h2>Create your first checklist.</h2>
-          <p>Once you generate a trip, it will appear here with its day, optional location, and checklist preview.</p>
+          <p>Your saved trips will show up here once you create one.</p>
           <Link href="/">Start a trip</Link>
         </section>
       ) : (
