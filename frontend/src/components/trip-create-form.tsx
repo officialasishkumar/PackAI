@@ -180,17 +180,14 @@ export function TripCreateForm() {
             </span>
           </div>
           <h2>Create your checklist</h2>
-          <p className={styles.copy}>
-            Name the trip, add one packed-bag photo, and fix anything the model
-            misses.
-          </p>
+          <p className={styles.copy}>Name it. Add one bag photo. Done.</p>
         </div>
 
         {status !== "authenticated" ? (
           <section className={styles.syncCard}>
             <div className={styles.syncCopy}>
-              <strong>Dashboard sync is locked.</strong>
-              <p>Sign in if you want saved trips and cross-device history.</p>
+              <strong>Dashboard needs sign-in.</strong>
+              <p>Save trips across devices.</p>
             </div>
             <button
               type="button"
@@ -223,16 +220,14 @@ export function TripCreateForm() {
             disabled={isBusy}
           />
           <span className={styles.uploaderLabel}>Add luggage photo or short video</span>
-          <span className={styles.uploaderHint}>
-            JPEG, PNG, or MP4 up to 15 seconds.
-          </span>
+          <span className={styles.uploaderHint}>JPG, PNG, or MP4 (15s max).</span>
         </label>
 
         <section className={styles.locationCard}>
           <div className={styles.locationHeader}>
             <div>
               <p className={styles.kicker}>Optional</p>
-              <strong>Add location context</strong>
+              <strong>Add location</strong>
             </div>
 
             <label className={styles.toggle}>
@@ -245,9 +240,7 @@ export function TripCreateForm() {
             </label>
           </div>
 
-          <p className={styles.locationCopy}>
-            Useful if you want to remember where this checklist was created.
-          </p>
+          <p className={styles.locationCopy}>Remember where you packed.</p>
 
           {wantsLocation ? (
             <div className={styles.locationActions}>
@@ -289,14 +282,13 @@ export function TripCreateForm() {
             <div className={styles.previewEmpty}>
               <span className={styles.previewBadge}>Preview</span>
               <strong>Add one clear bag photo</strong>
-              <p>A simple top-down shot usually gives the best extraction.</p>
+              <p>Top-down is best.</p>
             </div>
           )}
         </div>
 
         <p className={styles.note}>
-          {selectedMedia?.note ??
-            "Tip: spread items so the model can clearly see distinct objects and counts."}
+          {selectedMedia?.note ?? "Tip: keep items separated for better results."}
         </p>
 
         {error ? <p className={styles.error}>{error}</p> : null}

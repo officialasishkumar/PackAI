@@ -61,10 +61,8 @@ export function TripDashboard() {
       <section className={styles.hero}>
         <div className={styles.heroHeader}>
           <p className={styles.kicker}>Dashboard</p>
-          <h1>Saved checklists.</h1>
-          <p className={styles.copy}>
-            Open a trip, scan the essentials, or export the checklist as an image.
-          </p>
+          <h1>Saved trips.</h1>
+          <p className={styles.copy}>Open, check, export.</p>
         </div>
 
         <div className={styles.heroActions}>
@@ -87,13 +85,13 @@ export function TripDashboard() {
       {isLoading ? (
         <section className={styles.loadingCard}>
           <p className={styles.kicker}>Refreshing</p>
-          <h2>Loading your checklists…</h2>
+          <h2>Loading…</h2>
         </section>
       ) : groupedTrips.length === 0 ? (
         <section className={styles.emptyCard}>
-          <p className={styles.kicker}>Nothing here yet</p>
-          <h2>Create your first checklist.</h2>
-          <p>Your saved trips will show up here once you create one.</p>
+          <p className={styles.kicker}>No trips yet</p>
+          <h2>Create your first trip.</h2>
+          <p>It will appear here.</p>
           <Link href="/">Start a trip</Link>
         </section>
       ) : (
