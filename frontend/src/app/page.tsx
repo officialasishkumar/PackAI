@@ -5,18 +5,18 @@ import styles from "./home.module.css";
 const STEPS = [
   {
     step: "01",
-    title: "Name the trip",
-    copy: "Use a label you will recognize later.",
+    title: "Name trip",
+    copy: "Quick label.",
   },
   {
     step: "02",
-    title: "Add one clear bag photo",
-    copy: "A single top-down shot is usually enough.",
+    title: "Add one photo",
+    copy: "Top-down works best.",
   },
   {
     step: "03",
-    title: "Fix the checklist",
-    copy: "Adjust quantities and missing items in seconds.",
+    title: "Review list",
+    copy: "Edit in seconds.",
   },
 ];
 
@@ -26,18 +26,15 @@ export default function Home() {
       <section className={styles.story}>
         <div className={styles.orb} />
         <div className={styles.badgeRow}>
-          <span className={styles.badge}>Smart Extraction</span>
-          <span className={styles.badge}>Offline Ready</span>
-          <span className={styles.badge}>Privacy First</span>
+          <span className={styles.badge}>Fast</span>
+          <span className={styles.badge}>Mobile</span>
+          <span className={styles.badge}>Private</span>
         </div>
 
         <div className={styles.headline}>
           <p className="monoLabel">PackAI</p>
           <h1>Snap the bag. Check the list.</h1>
-          <p>
-            Turn one luggage photo into a checklist you can review before you
-            leave and again before you fly home.
-          </p>
+          <p>One bag photo → instant checklist.</p>
         </div>
 
         <div className={styles.steps} aria-label="How it works">

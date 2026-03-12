@@ -19,6 +19,7 @@
     linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(246, 238, 227, 0.72)),
     radial-gradient(circle at top right, rgba(31, 114, 109, 0.1), transparent 30%);
   box-shadow: var(--shadow);
+  align-items: center;
 }
 
 .brand {
@@ -75,11 +76,6 @@
   box-shadow: none;
 }
 
-.navPromptOpen {
-  background: rgba(31, 114, 109, 0.12);
-  color: var(--accent-strong);
-}
-
 .navActive {
   background: var(--foreground);
   color: white;
@@ -104,15 +100,13 @@
   min-height: 2.9rem;
 }
 
-.secondaryAction,
-.ghostAction {
+.secondaryAction {
   background: rgba(21, 49, 59, 0.08);
   color: var(--foreground);
   box-shadow: none;
 }
 
-.secondaryAction:hover:not(:disabled),
-.ghostAction:hover:not(:disabled) {
+.secondaryAction:hover:not(:disabled) {
   background: rgba(21, 49, 59, 0.12);
   transform: none;
   box-shadow: none;
@@ -136,45 +130,13 @@
   font-size: 0.92rem;
 }
 
-.dashboardPrompt {
-  display: grid;
-  gap: 1rem;
-  padding: 1rem 1.05rem;
-  border-radius: 1.4rem;
-  border: 1px solid var(--border);
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(247, 240, 231, 0.84)),
-    radial-gradient(circle at top right, rgba(216, 122, 82, 0.12), transparent 32%);
-  box-shadow: var(--shadow);
-}
-
-.promptCopy {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.promptCopy p:last-child {
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.promptLabel {
-  font-family: var(--font-plex-mono), monospace;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent-strong);
-}
-
-.promptActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-}
-
 @media (max-width: 760px) {
   .nav {
     width: fit-content;
+  }
+
+  .account {
+    justify-content: flex-start;
   }
 }
 
@@ -186,10 +148,5 @@
 
   .nav {
     justify-self: center;
-  }
-
-  .dashboardPrompt {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
   }
 }

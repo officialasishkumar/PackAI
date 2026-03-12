@@ -8,6 +8,7 @@
     max(2rem, env(safe-area-inset-bottom));
   display: grid;
   gap: 1rem;
+  align-content: start;
 }
 
 .hero,
@@ -50,7 +51,7 @@
 .hero h1,
 .loadingCard h2,
 .emptyCard h2 {
-  font-size: clamp(2.2rem, 8vw, 4.3rem);
+  font-size: clamp(1.9rem, 7vw, 3.9rem);
   line-height: 0.95;
   letter-spacing: -0.05em;
 }
@@ -133,6 +134,7 @@
   display: grid;
   gap: 0.9rem;
   padding: 1rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .tripCard {
@@ -243,5 +245,11 @@
 
   .tripList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1320px) {
+  .tripList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
